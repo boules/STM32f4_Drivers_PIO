@@ -22,21 +22,20 @@ basic parameters:
 #include "usart_regs.h"
 #include "common_macros.h"
 
-void USART_Init(uint8 usart_number, USART_InitStruct *configPtr)
+void USART_Init(USART_ManagerStruct *usartxManger)
 {
-	USART_RegStruct *USART_basePtr = NULL_PTR;
-	switch (usart_number)
+
+	switch ((uint32)usartxManger->moduleBase)
 	{
-	case USART1:
-		USART_basePtr = (USART_RegStruct *)USART1_BASE;
+	case USART1_BASE:
 		RCC_Enable(RCC_USART1);
 		break;
-	case USART2:
-		USART_basePtr = (USART_RegStruct *)USART2_BASE;
+
+	case USART2_BASE:
 		RCC_Enable(RCC_USART2);
 		break;
-	case USART6:
-		USART_basePtr = (USART_RegStruct *)USART6_BASE;
+
+	case USART6_BASE:
 		RCC_Enable(RCC_USART6);
 		break;
 
@@ -46,18 +45,18 @@ void USART_Init(uint8 usart_number, USART_InitStruct *configPtr)
 
 	// Configure stop bits
 	// USART_basePtr->CR2 = (USART_basePtr->CR2 & ~(USART_CR2_STOP_ClrMsk)) | StopBits;
-	REG_CLEARANDSET_BYMASKS(USART_basePtr->CR2, USART_CR2_STOP_clrMsk, configPtr->StopBits);
+	REG_CLEARANDSET_BYMASKS(usartxManger->moduleBase->CR2, USART_CR2_STOP_clrMsk, usartxManger->init.StopBits);
 
 	// configure Wordlength, parity, TxorRX mode
-	REG_CLEARANDSET_BYMASKS(USART_basePtr->CR1,
-							((uint32)(USART_CR1_M_clrMsk | USART_CR1_PCE_clrMsk | USART_CR1_PS_clrMsk | USART_CR1_TE_clrMsk | USART_CR1_RE_clrMsk)),
-							((uint32)configPtr->WordLength | configPtr->Parity | configPtr->Mode));
+	REG_CLEARANDSET_BYMASKS(usartxManger->moduleBase->CR1,
+							((uint32)(		USART_CR1_M_clrMsk 	| USART_CR1_PCE_clrMsk | USART_CR1_PS_clrMsk | USART_CR1_TE_clrMsk | USART_CR1_RE_clrMsk)),
+							((uint32)usartxManger->init.WordLength 	| 		usartxManger->init.Parity	 	|	 usartxManger->init.Mode));
 
 	// configure baudrate
-	USART_basePtr->BRR = UART_BRR_SAMPLING16(16000000, configPtr->BaudRate);
+	usartxManger->moduleBase->BRR = UART_BRR_SAMPLING16(16000000, usartxManger->init.BaudRate);
 
 	// enable the usart
-	(USART_basePtr->CR1 |= USART_CR1_UE);
+	(usartxManger->moduleBase->CR1 |= USART_CR1_UE);
 
 	return;
 }
@@ -281,71 +280,37 @@ static void UART_EndRxTransfer(USART_ManagerStruct *usartxManger)
 /*****************************************************************************************/
 /***********************************POLLING FUNCTIONS*************************************/
 /*****************************************************************************************/
-void USART_sendByte_polling(uint8 usart_number, const uint8 data)
+void USART_sendByte_polling(USART_ManagerStruct *usartxManger, const uint8 data)
 {
-	USART_RegStruct *USART_basePtr = NULL_PTR;
-	switch (usart_number)
-	{
-	case USART1:
-		USART_basePtr = (USART_RegStruct *)USART1_BASE;
-		break;
-	case USART2:
-		USART_basePtr = (USART_RegStruct *)USART2_BASE;
-		break;
-	case USART6:
-		USART_basePtr = (USART_RegStruct *)USART6_BASE;
-		break;
-
-	default:
-		break;
-	}
-
 	/* 1. wait til the TDR is empty and ready to take-in data (wait for the TXE flag).
 	 * 2. then write the data in the Data Register.
 	 */
 
 	// stop while the TX line is full  (wait while the TXE flag is clear)
-	while (BIT_IS_CLEAR(USART_basePtr->SR, USART_SR_TXE_Pos))
+	while (BIT_IS_CLEAR(usartxManger->moduleBase->SR, USART_SR_TXE_Pos))
 	{
 	}
 
 	// writing the data in the data Register DR
-	USART_basePtr->DR = data;
+	usartxManger->moduleBase->DR = data;
 
 	// not nessecary    only nessecaery after the last byte sent by the uart to  indiacte that all is complete and its okay to disable the usart after it
 	// while (!((USART_basePtr->SR)&(USART_SR_TC_Pos)))
 }
 
-uint8 USART_recieveByte_polling(uint8 usart_number)
+uint8 USART_recieveByte_polling(USART_ManagerStruct *usartxManger)
 {
-	USART_RegStruct *USART_basePtr = NULL_PTR;
-	switch (usart_number)
-	{
-	case USART1:
-		USART_basePtr = (USART_RegStruct *)USART1_BASE;
-		break;
-	case USART2:
-		USART_basePtr = (USART_RegStruct *)USART2_BASE;
-		break;
-	case USART6:
-		USART_basePtr = (USART_RegStruct *)USART6_BASE;
-		break;
-
-	default:
-		break;
-	}
-
 	/* 1. wait for the module to detect a byte on the line. that will raise a flag (RXNE) RX Not Empty. wait for the flag.
 	 * 2. then read and return the recieved data.
 	 */
 
 	// stop while the RX line is empty  (wait while the RXNE flag is clear)
-	while (BIT_IS_CLEAR(USART_basePtr->SR, USART_SR_RXNE_Pos))
+	while (BIT_IS_CLEAR(usartxManger->moduleBase->SR, USART_SR_RXNE_Pos))
 	{
 	}
 
 	// read and return the recieved data
-	return USART_basePtr->DR;
+	return usartxManger->moduleBase->DR;
 }
 
 

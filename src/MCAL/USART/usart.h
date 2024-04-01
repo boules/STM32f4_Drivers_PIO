@@ -83,23 +83,6 @@ typedef struct
 
 
 
-// typedef struct{
-// 	uint32 uart_number;
-// 	UART_InitTypeDef* initStruct;
-// 	uint8 state;
-
-
-// } UART_Handler;
-
-
-void USART_Init(uint8 usart_number, USART_InitStruct *configPtr);
-void USART_sendByte_polling(uint8 usart_number, const uint8 data);
-uint8 USART_recieveByte_polling(uint8 usart_number);
-
-
-
-
-
 typedef enum USART_state_t{
 	READY = 0,
 	BUSY  = 1,
@@ -178,5 +161,11 @@ typedef struct USART_ManagerStruct
 } USART_ManagerStruct;
 
 
+void USART_Init(USART_ManagerStruct *usartxManger);
+void USART_sendByte_polling(USART_ManagerStruct *usartxManger, const uint8 data);
+uint8 USART_recieveByte_polling(USART_ManagerStruct *usartxManger);
+
+
+extern USART_ManagerStruct usart1Manager;
 
 #endif

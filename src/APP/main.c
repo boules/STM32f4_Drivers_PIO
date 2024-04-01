@@ -85,7 +85,7 @@ int main(void)
 
 /* Initialize all configured peripherals */
   	Port_Init(Port_pinConfigurationSet);
-	USART_Init(USART1, &UsartConfigurationSet);
+	USART_Init(&usart1Manager);
 	// I2C_Init(1, &I2cConfigurationSet);
 
 
@@ -130,14 +130,14 @@ int main(void)
 //while1
   while (1)
   {	
-	data = USART_recieveByte_polling(USART1); /* Receive Byte from Terminal1 */
-	USART_sendByte_polling(USART1, data);
+	data = USART_recieveByte_polling(&usart1Manager); /* Receive Byte from Terminal1 */
+	USART_sendByte_polling(&usart1Manager, data);
 
   }
 
 //USART
-	// data = UART_recieveByte_polling(USART1); /* Receive Byte from Terminal1 */
-	// UART_sendByte_polling(USART1, data);
+	data = USART_recieveByte_polling(&usart1Manager); /* Receive Byte from Terminal1 */
+	USART_sendByte_polling(&usart1Manager, data);
 
   return 0;
 }
