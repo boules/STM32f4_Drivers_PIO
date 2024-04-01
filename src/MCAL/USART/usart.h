@@ -165,6 +165,9 @@ void USART_Init(USART_ManagerStruct *usartxManger);
 void USART_sendByte_polling(USART_ManagerStruct *usartxManger, const uint8 data);
 uint8 USART_recieveByte_polling(USART_ManagerStruct *usartxManger);
 
+MCALStatus_t USART_startTransmit_IT(USART_ManagerStruct *usartxManger, const uint8 *pData, uint16 Size);
+MCALStatus_t USART_startRecieve_IT(USART_ManagerStruct *usartxManger, uint8_t *pData, uint16_t Size);
+void HAL_UART_IRQHandler(USART_ManagerStruct *usartxManger);
 
 extern USART_ManagerStruct usart1Manager;
 

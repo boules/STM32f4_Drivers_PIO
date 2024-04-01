@@ -131,7 +131,10 @@ static MCALStatus_t USART_endTransmit_IT(USART_ManagerStruct *usartxManger)
 	return MCAL_OK;
 }
 
-MCALStatus_t USART_startRecieve_it(USART_ManagerStruct *usartxManger, uint8_t *pData, uint16_t Size)
+
+
+
+MCALStatus_t USART_startRecieve_IT(USART_ManagerStruct *usartxManger, uint8_t *pData, uint16_t Size)
 {
 	/* Check that a Rx process is not already ongoing */
 	if (usartxManger->rxState == USART_STATE_READY)

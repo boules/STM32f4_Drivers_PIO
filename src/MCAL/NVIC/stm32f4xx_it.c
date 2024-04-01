@@ -210,7 +210,7 @@ void USART1_IRQHandler(void)
   /* USER CODE BEGIN USART1_IRQn 0 */
 
   /* USER CODE END USART1_IRQn 0 */
-//   HAL_UART_IRQHandler(&usart1Manager);
+  HAL_UART_IRQHandler(&usart1Manager);
   /* USER CODE BEGIN USART1_IRQn 1 */
 
   /* USER CODE END USART1_IRQn 1 */
