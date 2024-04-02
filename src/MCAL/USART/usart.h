@@ -83,14 +83,6 @@ typedef struct
 
 
 
-typedef enum USART_state_t{
-	READY = 0,
-	BUSY  = 1,
-
-} USART_state_t;
-
-uint8_t bufferData[3];
-
 typedef enum
 {
   USART_STATE_RESET             = 0x00U,    /*!< Peripheral is not yet Initialized

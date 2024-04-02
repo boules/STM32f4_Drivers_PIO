@@ -83,6 +83,8 @@ MCALStatus_t USART_startTransmit_IT(USART_ManagerStruct *usartxManger, const uin
 	// enable interrupt TXE when the tx is empty and ready to write the new data
 	usartxManger->moduleBase->CR1 |= USART_CR1_TXEIE;
 
+	Enable_Interrupts();
+
 	return MCAL_OK;
 }
 

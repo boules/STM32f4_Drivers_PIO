@@ -72,7 +72,7 @@ int main(void)
 	// STK_stop();
 	// STK_setTime_ms(7000);
 
-	uint8 data;
+	// uint8 data;
 	// uint8 i2cdata[6] = {'B', 'o', 'u', 'l', 'e', 's'};
 	// uint8 i2cdata2[4] = {'F', 'A', 'D', 'Y'};
 
@@ -112,7 +112,7 @@ int main(void)
 	while (1)
 	{
 		// USART_startRecieve_IT(&usart1Manager, usart_recieve_buffer, 1);
-		
+
 
 		for(int i=0; i<3; i++){
 		USART_sendByte_polling(&usart1Manager, usart_recieve_buffer[i]);
