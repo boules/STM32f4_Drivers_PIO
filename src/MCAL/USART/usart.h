@@ -71,12 +71,7 @@ typedef struct
 
   uint32 Mode;                      /*!< Specifies whether the Receive or Transmit mode is enabled or disabled.
                                            This parameter can be a value of @ref UART_Mode */
-
-//   uint32 HwFlowCtl;                 /*!< Specifies whether the hardware flow control mode is enabled or disabled.
-//                                            This parameter can be a value of @ref UART_Hardware_Flow_Control */
-
-//   uint32 OverSampling;              /*!< Specifies whether the Over sampling 8 is enabled or disabled, to achieve higher speed (up to fPCLK/8).
-//                                            This parameter can be a value of @ref UART_Over_Sampling */
+										   
 } USART_InitStruct;
 
 

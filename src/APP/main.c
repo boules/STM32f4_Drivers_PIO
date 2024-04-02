@@ -70,13 +70,21 @@ int main(void)
 	LCD_displayStringRowColumn(1, 0, "Hoppa FADY");
 ///
 
+//UART interrupts testing 
 	// uint8 data;
-
 	uint8 usart_recieve_buffer[5] = {'0', '0', '0', '0', '0'};
 	delay_ms(1000);
-	USART_startRecieve_IT(&usart1Manager, usart_recieve_buffer, 5);
+	if (USART_startRecieve_IT(&usart1Manager, usart_recieve_buffer, 5) != MCAL_OK){
+		while(1){}
+	}
+	// USART_TransmitData_IT(USART_ManagerStruct *usartxManger)
 	delay_ms(1000);
-	USART_startTransmit_IT(&usart1Manager, usart_recieve_buffer, 5);
+	if (USART_startTransmit_IT(&usart1Manager, usart_recieve_buffer, 5) != MCAL_OK){
+		while (1)
+		{
+			
+		}
+	}
 
 
 	// while1
@@ -92,7 +100,7 @@ int main(void)
 /* Templates */
 //USART Polling
 	/**
-	 *   data = USART_recieveByte_polling(&usart1Manager); /* Receive Byte from Terminal1
+	 *   data = USART_recieveByte_polling(&usart1Manager); // Receive Byte from Terminal1
 	 *   USART_sendByte_polling(&usart1Manager, data);
 	*/
 

@@ -17,7 +17,7 @@ USART_InitStruct UsartConfigurationSet = {
 
 // this must be extern in the main or in the .h file
 USART_ManagerStruct usart1Manager={
-	.moduleBase	= USART1_BASE,
+	.moduleBase	= (USART_RegStruct*)USART1_BASE,
 	.init		= {
 		.BaudRate = 9600,
 		.WordLength = USART_WORDLENGTH_8B,
@@ -25,16 +25,16 @@ USART_ManagerStruct usart1Manager={
 		.Parity = USART_PARITY_NONE,
 		.Mode = USART_MODE_TX_RX
 
-	}
-	// .pTxBuffPtr	= NULL_PTR,
-	// .TxXferSize	= 0,
-	// .TxXferCount= 0,
-	// .pRxBuffPtr	= NULL_PTR,
-	// .RxXferSize	= 0,
-	// .RxXferCount= 0,
-	// .txState		= USART_STATE_RESET,
-	// .rxState		= USART_STATE_RESET,
-	// .ErrorCode	= 1
+	},
+	.pTxBuffPtr	= NULL_PTR,
+	.TxXferSize	= 0,
+	.TxXferCount= 0,
+	.pRxBuffPtr	= NULL_PTR,
+	.RxXferSize	= 0,
+	.RxXferCount= 0,
+	.txState		= USART_STATE_RESET,
+	.rxState		= USART_STATE_RESET,
+	.ErrorCode	= USART_ERROR_NONE
 };
 
 // usart1Manager.ErrorCode = 0;

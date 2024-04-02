@@ -55,6 +55,10 @@ void USART_Init(USART_ManagerStruct *usartxManger)
 	// configure baudrate
 	usartxManger->moduleBase->BRR = UART_BRR_SAMPLING16(16000000, usartxManger->init.BaudRate);
 
+	//set usart states to ready
+	usartxManger->txState = USART_STATE_READY;
+	usartxManger->rxState = USART_STATE_READY;
+
 	// enable the usart
 	(usartxManger->moduleBase->CR1 |= USART_CR1_UE);
 
@@ -88,7 +92,8 @@ MCALStatus_t USART_startTransmit_IT(USART_ManagerStruct *usartxManger, const uin
 	return MCAL_OK;
 }
 
-static MCALStatus_t USART_TransmitData_IT(USART_ManagerStruct *usartxManger)
+//static 
+MCALStatus_t USART_TransmitData_IT(USART_ManagerStruct *usartxManger)
 {
 	const uint16_t *tmp;
 
