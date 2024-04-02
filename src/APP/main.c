@@ -99,24 +99,22 @@ int main(void)
 	LCD_displayStringRowColumn(0, 0, "Hi, Boules");
 	LCD_displayStringRowColumn(1, 0, "Hoppa FADY");
 
-	uint8 usart_recieve_buffer[3] = {'0', '0', '0'};
-
-	USART_startRecieve_IT(&usart1Manager, usart_recieve_buffer, 3);
-	// USART_sendByte_polling(&usart1Manager, usart_recieve_buffer[0]);
+	uint8 usart_recieve_buffer[5] = {'0', '0', '0', '0', '0'};
 
 
-	for(int i=0; i<3; i++){
-		USART_sendByte_polling(&usart1Manager, usart_recieve_buffer[i]);
-	}
+	delay_ms(2000);
+	USART_startRecieve_IT(&usart1Manager, usart_recieve_buffer, 5);
+	delay_ms(5000);
+
+	USART_startTransmit_IT(&usart1Manager, usart_recieve_buffer, 5);
+
+
 	// while1
 	while (1)
 	{
 		// USART_startRecieve_IT(&usart1Manager, usart_recieve_buffer, 1);
 
 
-		for(int i=0; i<3; i++){
-		USART_sendByte_polling(&usart1Manager, usart_recieve_buffer[i]);
-	}
 	}
 
 	// USART
