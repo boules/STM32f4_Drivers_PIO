@@ -1,13 +1,25 @@
 
 
 #include "sched.h"
+#include "led.h"
+#include "led_cfg.h"
+
+/* Write here your runnable functions */
+void runnable_Function_1(){
+	LED_toggle(GreenLED);
+}
+
+void runnable_Function_2(){
+	LED_toggle(YellowLED);
+}
+
+void runnable_Function_3(){
+	LED_toggle(RedLED);
+}
 
 
-extern void green_led();
-extern void yellow_led();
-extern void red_led();
 
-
+/* Array Contains all runnables details */
 const Runnable_Struct runnablesArray[MAX_SUPPORTED_TASKS] = {
 	[0] = {
 		.name = "green_runnable_1",
