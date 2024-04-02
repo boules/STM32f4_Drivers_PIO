@@ -5,8 +5,7 @@
 #include "platform_types.h"
 
 
-#define STK_delay_polling()		STK_start();\
-					while ( STK_isExpire() == 0);
+
 
 
 typedef void (*STK_CBFptr_t)(void);
@@ -20,5 +19,13 @@ void STK_stop();
 void STK_setCallBack(STK_CBFptr_t stkHandlerfunction);
 uint8 STK_isExpire();
 
+
+
+
+
+#define STK_delay_ms_polling(mstime)		STK_stop();\
+											STK_setTime_ms(mstime);\
+											STK_start();\
+											while ( STK_isExpire() == 0);
 
 #endif
