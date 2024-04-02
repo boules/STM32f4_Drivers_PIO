@@ -1,3 +1,6 @@
+#ifndef NVIC_REGS_H
+#define NVIC_REGS_H
+
 #include "platform_types.h"
 
 
@@ -32,3 +35,4 @@ typedef struct
 
 
 
+#endif

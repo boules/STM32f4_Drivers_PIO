@@ -1,3 +1,7 @@
+#ifndef NVIC_H
+#define NVIC_H
+
+
 #include "platform_types.h"
 #include "scb_regs.h"
 #include "nvic_regs.h"
@@ -374,3 +378,6 @@ static inline uint32 __NVIC_GetPriority(IRQn_Type IRQn)
     return(((uint32)SCB->SHP[(((uint32)IRQn) & 0xFUL)-4UL] >> (8U - __NVIC_PRIO_BITS)));
   }
 }
+
+
+#endif
