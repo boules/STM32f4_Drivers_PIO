@@ -40,11 +40,11 @@ typedef struct
 #define APB2PERIPH_BASE       (PERIPH_BASE + 0x00010000UL)
 
 /*!< APB1 peripherals */
-#define USART2_BASE           (uint32)(APB1PERIPH_BASE + 0x4400UL)
+#define USART2_BASE           (APB1PERIPH_BASE + 0x4400UL)
 
 /*!< APB2 peripherals */
-#define USART1_BASE           (uint32)(APB2PERIPH_BASE + 0x1000UL)
-#define USART6_BASE           (uint32)(APB2PERIPH_BASE + 0x1400UL)
+#define USART1_BASE           (APB2PERIPH_BASE + 0x1000UL)
+#define USART6_BASE           (APB2PERIPH_BASE + 0x1400UL)
 
 
 
