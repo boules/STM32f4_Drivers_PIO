@@ -338,7 +338,7 @@ typedef enum
 } FlagStatus,
 	ITStatus;
 
-void HAL_UART_IRQHandler(USART_ManagerStruct *usartxManger)
+void HAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 {
 	uint32_t isrflags = (usartxManger->moduleBase->SR);
 	uint32_t cr1its = (usartxManger->moduleBase->CR1);
