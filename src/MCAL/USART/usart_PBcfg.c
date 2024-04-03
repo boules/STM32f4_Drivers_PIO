@@ -7,14 +7,6 @@
 #include "std_types.h"
 
 //USART
-USART_InitStruct UsartConfigurationSet = {
-	.BaudRate = 9600,
-	.WordLength = USART_WORDLENGTH_8B,
-	.StopBits = USART_STOPBITS_1,
-	.Parity = USART_PARITY_NONE,
-	.Mode = USART_MODE_TX_RX
-};
-
 // this must be extern in the main or in the .h file
 USART_ManagerStruct usart1Manager={
 	.moduleBase	= (USART_RegStruct*)USART1_BASE,

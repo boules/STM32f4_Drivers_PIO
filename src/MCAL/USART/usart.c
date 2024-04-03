@@ -21,6 +21,7 @@ basic parameters:
 #include "usart.h"
 #include "usart_regs.h"
 #include "common_macros.h"
+#include "nvic.h"
 
 void USART_Init(USART_ManagerStruct *usartxManger)
 {
@@ -88,6 +89,7 @@ MCALStatus_t USART_startTransmit_IT(USART_ManagerStruct *usartxManger, const uin
 	usartxManger->moduleBase->CR1 |= USART_CR1_TXEIE;
 
 	Enable_Interrupts();
+	__NVIC_EnableIRQ(USART1_IRQn);
 
 	return MCAL_OK;
 }
@@ -175,6 +177,9 @@ MCALStatus_t USART_startRecieve_IT(USART_ManagerStruct *usartxManger, uint8_t *p
 
 		/* Enable the UART Data Register not empty Interrupt */
 		usartxManger->moduleBase->CR1 |= (USART_CR1_RXNEIE_Msk);
+
+		/* enable usart global interrupt*/
+		__NVIC_EnableIRQ(USART1_IRQn);
 
 		return MCAL_OK;
 	}
