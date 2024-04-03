@@ -26,7 +26,7 @@ const Runnable_Struct runnablesArray[MAX_SUPPORTED_TASKS] = {
 		.ofset_ms = 0,
 		.periodicity = 1000,
 		.priority = 0,
-		.runnableFunction = &green_led
+		.runnableFunction = &runnable_Function_1
 	},
 
 	[1] = {
@@ -34,7 +34,7 @@ const Runnable_Struct runnablesArray[MAX_SUPPORTED_TASKS] = {
 		.ofset_ms = 0000,
 		.periodicity = 2000,
 		.priority = 1,
-		.runnableFunction = &yellow_led
+		.runnableFunction = &runnable_Function_2
 	},
 
 	[2] = {
@@ -42,6 +42,6 @@ const Runnable_Struct runnablesArray[MAX_SUPPORTED_TASKS] = {
 		.ofset_ms = 0000,
 		.periodicity = 4000,
 		.priority = 1,
-		.runnableFunction = &red_led
+		.runnableFunction = &runnable_Function_3
 	}
 };
