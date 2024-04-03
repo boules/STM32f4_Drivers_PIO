@@ -257,6 +257,10 @@ void LCD_moveCursor(uint8 row,uint8 col)
 		case 3:
 			lcd_memory_address=col+0x50;
 				break;
+		default:
+			//if row is wrong input move curser to first row
+			lcd_memory_address=col;
+			break;
 	}					
 	/* Move the LCD cursor to this specific address */
 	LCD_sendCommand(lcd_memory_address | LCD_SET_CURSOR_LOCATION);
