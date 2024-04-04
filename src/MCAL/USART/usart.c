@@ -345,7 +345,7 @@ uint8 USART_recieveByte_polling(USART_ManagerStruct *usartxManger)
 enum FlagStatus{
 	RESET = 0U,
 	SET = !RESET
-}
+};
 
 void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 {
@@ -353,7 +353,7 @@ void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 	uint32_t cr1its = (usartxManger->moduleBase->CR1);
 	uint32_t cr3its = (usartxManger->moduleBase->CR3);
 	uint32_t errorflags = 0x00U;
-	uint32_t dmarequest = 0x00U;
+	// uint32_t dmarequest = 0x00U;
 
 
 	errorflags = (isrflags & (uint32_t)(USART_SR_ORE | USART_SR_NE | USART_SR_FE | USART_SR_PE));

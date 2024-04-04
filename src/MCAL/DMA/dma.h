@@ -33,6 +33,7 @@
 
 #include "platform_types.h"
 #include "dma_regs.h"
+#include "mcal_def.h"
 
 
 /** @defgroup DMA_Exported_Types DMA Exported Types
@@ -174,7 +175,7 @@ typedef struct __DMA_HandleTypeDef
 
 
 
-#define DMA1                ((DMA_TypeDef *) DMA1_BASE)
+#define DMA1                ((DMA_RegStruct *) DMA1_BASE)
 #define DMA1_Stream0        ((DMA_Stream_TypeDef *) DMA1_Stream0_BASE)
 #define DMA1_Stream1        ((DMA_Stream_TypeDef *) DMA1_Stream1_BASE)
 #define DMA1_Stream2        ((DMA_Stream_TypeDef *) DMA1_Stream2_BASE)
@@ -183,7 +184,7 @@ typedef struct __DMA_HandleTypeDef
 #define DMA1_Stream5        ((DMA_Stream_TypeDef *) DMA1_Stream5_BASE)
 #define DMA1_Stream6        ((DMA_Stream_TypeDef *) DMA1_Stream6_BASE)
 #define DMA1_Stream7        ((DMA_Stream_TypeDef *) DMA1_Stream7_BASE)
-#define DMA2                ((DMA_TypeDef *) DMA2_BASE)
+#define DMA2                ((DMA_RegStruct *) DMA2_BASE)
 #define DMA2_Stream0        ((DMA_Stream_TypeDef *) DMA2_Stream0_BASE)
 #define DMA2_Stream1        ((DMA_Stream_TypeDef *) DMA2_Stream1_BASE)
 #define DMA2_Stream2        ((DMA_Stream_TypeDef *) DMA2_Stream2_BASE)
@@ -440,7 +441,9 @@ typedef enum
 
 
 void DMA_Init(DMA_HandleTypeDef* dmaManager);
-void DMA_start(uint32 stream, uint32 SrcAddress, uint32 DstAddress, uint32 DataLength);
-uint32 DMA_PollForTransfer(HAL_DMA_LevelCompleteTypeDef CompleteLevel);
+void DMA_start(DMA_HandleTypeDef* dmaManager, uint32 SrcAddress, uint32 DstAddress, uint32 DataLength);
+void HAL_DMA_Start_IT(DMA_HandleTypeDef* dmaManager, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength);
+MCALStatus_t DMA_PollForTransfer(DMA_HandleTypeDef *hdma, HAL_DMA_LevelCompleteTypeDef CompleteLevel);
+void HAL_DMA_IRQHandler(DMA_HandleTypeDef *hdma);
 
 #endif /*DMA_H*/

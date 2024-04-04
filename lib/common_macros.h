@@ -34,7 +34,6 @@
 /* orring mutible bits by using the pin number*/
 #define CLEAR_MULTIBLE_BITS(reg, onesMask, bit, shiftBy)		((reg) &=  ~( CREATE_32BIT_MASK(onesMask, bit, shiftBy) ) )
 #define SETBYOR_MULTIBLE_BITS(reg, value, bit, shiftBy)			((reg) |=   ( CREATE_32BIT_MASK(value, bit, shiftBy) ) )
-
 #define CLEARANDSET_MULTIBLE_BITS(reg, bit, numOfBits, value)	((reg) = (((reg) & (~CREATE_32BIT_MASK(((1<<numOfBits)-1), bit, numOfBits))) | (CREATE_32BIT_MASK(value, bit, numOfBits))) )
 
 
@@ -46,7 +45,7 @@ enum onesMask{
 	TWO_ONES_MASK = 0b11, THREE_ONES_MASK = 0b111, FOUR_ONES_MASK = 0b1111
 };
 /************************************************************************************************************************/
-/* clear bits by masks of the wanted bits to clear and set*/
+/* clear bits BY MASKS of the wanted bits to clear and set*/
 #define REG_CLEARANDSET_BYMASKS(REG, CLEARMASK, SETMASK)  ((REG) = (((REG) & (~(CLEARMASK))) | (SETMASK)))
 #define CLEAR_AND_SET_BYMASKS(REG, CLEARMASK, SETMASK)  ((REG) = (((REG) & (~(CLEARMASK))) | (SETMASK)))
 

@@ -74,7 +74,7 @@ int main(void)
 	// uint8 data;
 	uint8 usart_recieve_buffer[5] = {'0', '0', '0', '0', '0'};
 	delay_ms(1000);
-	if (USART_startRecieve_IT(&usart1Manager, usart_recieve_buffer, 5) != MCAL_OK){
+	if (USART_startReceive_IT(&usart1Manager, usart_recieve_buffer, 5) != MCAL_OK){
 		while(1){}
 	}
 	// USART_TransmitData_IT(USART_ManagerStruct *usartxManger)

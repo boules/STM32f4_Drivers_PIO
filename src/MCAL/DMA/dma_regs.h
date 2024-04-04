@@ -453,4 +453,4 @@ typedef struct
 #define DMA_SxM1AR_M1A           DMA_SxM1AR_M1A_Msk                            /*!< Memory Address */
 
 
-#endif DMA_REGS_H
+#endif /*DMA_REGS_H*/
