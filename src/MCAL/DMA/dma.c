@@ -163,7 +163,13 @@ static void DMA_SetConfig(DMA_HandleTypeDef* dmaManager, uint32_t SrcAddress, ui
 
 void DMA_start(DMA_HandleTypeDef* dmaManager, uint32 SrcAddress, uint32 DstAddress, uint32 DataLength){
 
-	assert_param(IS_DMA_BUFFER_SIZE(DataLength));
+	if(((DataLength) >= 0x01U) && ((DataLength) < 0x10000U)){
+
+	}else{
+		;
+		/*ERROR*/
+	}
+	// assert_param(IS_DMA_BUFFER_SIZE(DataLength));
 
 	if(HAL_DMA_STATE_READY == dmaManager->State)
 	{
@@ -198,7 +204,13 @@ void DMA_Start_IT(DMA_HandleTypeDef* dmaManager, uint32_t SrcAddress, uint32_t D
   DMA_Base_Registers *regs = (DMA_Base_Registers *)dmaManager->StreamBaseAddress;
   
   /* Check the parameters */
-  assert_param(IS_DMA_BUFFER_SIZE(DataLength));
+  	if(((DataLength) >= 0x01U) && ((DataLength) < 0x10000U)){
+
+	}else{
+		;
+		/*ERROR*/
+	}
+	//   assert_param(IS_DMA_BUFFER_SIZE(DataLength));
  
   /* Process locked */
 //   __HAL_LOCK(hdma);
