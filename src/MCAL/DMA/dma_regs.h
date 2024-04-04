@@ -1,10 +1,14 @@
+#ifndef DMA_REGS_H
+#define DMA_REGS_H
+
+
 /* Private types -------------------------------------------------------------*/
-// typedef struct
-// {
-//   volatile uint32_t ISR;   /*!< DMA interrupt status register */
-//   volatile uint32_t Reserved0;
-//   volatile uint32_t IFCR;  /*!< DMA interrupt flag clear register */
-// } DMA_Base_Registers;
+typedef struct
+{
+  volatile uint32_t ISR;   /*!< DMA interrupt status register */
+  volatile uint32_t Reserved0;
+  volatile uint32_t IFCR;  /*!< DMA interrupt flag clear register */
+} DMA_Base_Registers;
 
 
 
@@ -33,15 +37,7 @@ typedef struct
 	volatile	uint32_t 				LIFCR;  /*!< DMA low interrupt flag clear register,  Address offset: 0x08 */
 	volatile	uint32_t 				HIFCR;  /*!< DMA high interrupt flag clear register, Address offset: 0x0C */
 	volatile	DMA_Stream_TypeDef		stream[8];
-} DMA_TypeDef;
-
-
-
-
-
-
-
-
+} DMA_RegStruct;
 
 
 
@@ -455,3 +451,6 @@ typedef struct
 #define DMA_SxM1AR_M1A_Pos       (0U)
 #define DMA_SxM1AR_M1A_Msk       (0xFFFFFFFFUL << DMA_SxM1AR_M1A_Pos)           /*!< 0xFFFFFFFF */
 #define DMA_SxM1AR_M1A           DMA_SxM1AR_M1A_Msk                            /*!< Memory Address */
+
+
+#endif DMA_REGS_H

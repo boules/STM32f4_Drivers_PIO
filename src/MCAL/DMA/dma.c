@@ -14,44 +14,106 @@
 #include "dma_regs.h"
 #include "common_macros.h"
 #include "platform_types.h"
+#include "rcc.h"
+
+static uint32_t DMA_CalcBaseAndBitshift(DMA_HandleTypeDef *hdma)
+{
+  uint32_t stream_number = (((uint32_t)hdma->Instance & 0xFFU) - 16U) / 24U;
+  
+  /* lookup table for necessary bitshift of flags within status registers */
+  static const uint8_t flagBitshiftOffset[8U] = {0U, 6U, 16U, 22U, 0U, 6U, 16U, 22U};
+  hdma->StreamIndex = flagBitshiftOffset[stream_number];
+  
+  if (stream_number > 3U)
+  {
+    /* return pointer to HISR and HIFCR */
+    hdma->StreamBaseAddress = (((uint32_t)hdma->Instance & (uint32_t)(~0x3FFU)) + 4U);
+  }
+  else
+  {
+    /* return pointer to LISR and LIFCR */
+    hdma->StreamBaseAddress = ((uint32_t)hdma->Instance & (uint32_t)(~0x3FFU));
+  }
+  
+  return hdma->StreamBaseAddress;
+}
+
+void DMA_Init(DMA_HandleTypeDef* dmaManager){
+
+	switch (dmaManager->moduleBase)
+	{
+	case DMA1:
+		RCC_Enable(RCC_DMA1);
+		break;
+	
+	case DMA2:
+		RCC_Enable(RCC_DMA2);
+		break;
+	
+	default:
+		/*ERROR wrong inputs*/
+		break;
+	}
 
 
-void DMA_Init(DMA_InitTypeDef* configPtr){
+	/* Change DMA peripheral state */
+	hdma->State = HAL_DMA_STATE_BUSY;
+	
 	//disable the module
-	(DMA2_Stream2->CR &=  ~DMA_SxCR_EN);
-
+	(dmaManager->Instance->CR &=  ~DMA_SxCR_EN);
 	/* Check if the DMA Stream is effectively disabled */
-	while((DMA2_Stream2->CR & DMA_SxCR_EN) != 0);
+	while((dmaManager->Instance->CR & DMA_SxCR_EN) != 0); //maybe you should do time out
+
+
+
 
 	// configure the Control Register
-	CLEAR_AND_SET_BYMASKS( DMA2_Stream2->CR
+	CLEAR_AND_SET_BYMASKS( dmaManager->Instance->CR
 						, 
 						(DMA_SxCR_CHSEL | DMA_SxCR_MBURST | DMA_SxCR_PBURST | DMA_SxCR_PL    | DMA_SxCR_MSIZE  | DMA_SxCR_PSIZE  | 
-						DMA_SxCR_MINC  | DMA_SxCR_PINC   | DMA_SxCR_CIRC   | DMA_SxCR_DIR   | DMA_SxCR_CT     | DMA_SxCR_DBM)
+						DMA_SxCR_MINC  | DMA_SxCR_PINC   | DMA_SxCR_CT     | DMA_SxCR_DBM   | DMA_SxCR_DIR   | DMA_SxCR_CIRC)
 						,			
-						(configPtr->Channel	| configPtr->Direction | configPtr->PeriphInc | configPtr->MemInc |
-						configPtr->PeriphDataAlignment | configPtr->MemDataAlignment | configPtr->Mode | configPtr->Priority)
+						(dmaManager->Init.Channel	| dmaManager->Init.Priority | dmaManager->Init.MemDataAlignment | dmaManager->Init.PeriphDataAlignment | 
+						dmaManager->Init.MemInc | dmaManager->Init.PeriphInc | dmaManager->Init.Direction | dmaManager->Init.Mode)
 						);
 	;
 
-	if(configPtr->FIFOMode == DMA_FIFOMODE_ENABLE){
-		/* Get memory burst and peripheral burst */
-		DMA1_Stream2->CR |=  configPtr->MemBurst | configPtr->PeriphBurst;
-	}
 
-	/********************not handling FIFO***********/
-	CLEAR_AND_SET_BYMASKS( DMA2_Stream2->FCR, (DMA_SxFCR_DMDIS | DMA_SxFCR_FTH), (configPtr->FIFOMode));
+/** not handling fifo mode right now***********************************************************************/
+	// if(dmaManager->Init.FIFOMode == DMA_FIFOMODE_ENABLE){
+	// 	/* Get memory burst and peripheral burst */
+	// 	dmaManager->Instance->CR |=  dmaManager->Init.MemBurst | dmaManager->Init.PeriphBurst;
+	// }
+
+
+	// /* Clear Direct mode and FIFO threshold bits */
+	// /* Prepare the DMA Stream FIFO configuration */
+	// CLEAR_AND_SET_BYMASKS( dmaManager->Instance->FCR, (DMA_SxFCR_DMDIS | DMA_SxFCR_FTH), (dmaManager->Init.FIFOMode));
 	
-	if(configPtr->FIFOMode == DMA_FIFOMODE_ENABLE){
-		/* Get the FIFO threshold */
-		DMA2_Stream2->FCR |= configPtr->FIFOThreshold;
-	}
-	/************************************************/
+	// if(dmaManager->Init.FIFOMode == DMA_FIFOMODE_ENABLE){
+	// 	/* Get the FIFO threshold */
+	// 	dmaManager->Instance->FCR |= dmaManager.FIFOThreshold;
+	// }
+	// .
+	// .
+	// .
+/***************************************************************************/
 
-// not REALY handling any interrupts
 // 	/* Clear all interrupt flags */
-//   regs->IFCR = 0x3FU << hdma->StreamIndex;
+	/* Initialize StreamBaseAddress and StreamIndex parameters to be used to calculate
+     DMA steam Base Address needed by HAL_DMA_IRQHandler() and HAL_DMA_PollForTransfer() */
+	DMA_Base_Registers *regs;
+  	regs = (DMA_Base_Registers *)DMA_CalcBaseAndBitshift(dmaManager);
+  
+  	/* Clear all interrupt flags */
+  	regs->IFCR = 0x3FU << hdma->StreamIndex;
 
+
+	/* Initialize the error code */
+	dmaManager->ErrorCode = HAL_DMA_ERROR_NONE;
+
+	/* Initialize the DMA state */
+	dmaManager->State = HAL_DMA_STATE_READY;
 
 }
 
@@ -62,42 +124,56 @@ void DMA_Init(DMA_InitTypeDef* configPtr){
 
 
 
-static void DMA_SetConfig(uint32 stream, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength)
+static void DMA_SetConfig(DMA_HandleTypeDef* dmaManager, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength)
 {
   /* Clear DBM bit */
-  DMA2_Stream2->CR &= (uint32_t)(~DMA_SxCR_DBM);
+  dmaManager->Instance->CR &= (uint32_t)(~DMA_SxCR_DBM);
 
   /* Configure DMA Stream data length */
-  DMA2_Stream2->NDTR = DataLength;
+  dmaManager->Instance->NDTR = DataLength;
 
-//   /* Memory to Peripheral */
-//   if((hdma->Init.Direction) == DMA_MEMORY_TO_PERIPH)
-//   {
-//     /* Configure DMA Stream destination address */
-//     DMA2_Stream2->PAR = DstAddress;
+  /* Memory to Peripheral */
+  if((dmaManager->Init.Direction) == DMA_MEMORY_TO_PERIPH)
+  {
+    /* Configure DMA Stream destination address */
+    dmaManager->Instance->PAR = DstAddress;
 
-//     /* Configure DMA Stream source address */
-//     DMA2_Stream2->M0AR = SrcAddress;
-//   }
-//   /* Peripheral to Memory */
-//   else
+    /* Configure DMA Stream source address */
+    dmaManager->Instance->M0AR = SrcAddress;
+  }
+  /* Peripheral to Memory */
+  else
   {
     /* Configure DMA Stream source address */
-    DMA2_Stream2->PAR = SrcAddress;
+    dmaManager->Instance->PAR = SrcAddress;
 
     /* Configure DMA Stream destination address */
-    DMA2_Stream2->M0AR = DstAddress;
+    dmaManager->Instance->M0AR = DstAddress;
   }
 }
 
+// need to put it on .h file
+#define IS_DMA_BUFFER_SIZE(SIZE) (((SIZE) >= 0x01U) && ((SIZE) < 0x10000U))
+#define assert_param(expr) ((expr) ? (void)0U : assert_failed((uint8_t *)__FILE__, __LINE__))
 
-void DMA_start(uint32 stream, uint32 SrcAddress, uint32 DstAddress, uint32 DataLength){
+void DMA_start(DMA_HandleTypeDef* dmaManager, uint32 SrcAddress, uint32 DstAddress, uint32 DataLength){
 
-	/* Configure the source, destination address and the data length */
-    DMA_SetConfig(DMA2_Stream2, SrcAddress, DstAddress, DataLength);
+	assert_param(IS_DMA_BUFFER_SIZE(DataLength));
 
-    /* Enable the Peripheral */
-	DMA2_Stream2->CR |=  DMA_SxCR_EN;
+	if(HAL_DMA_STATE_READY == dmaManager->State)
+	{
+		/* Change DMA peripheral state */
+		dmaManager->State = HAL_DMA_STATE_BUSY;
+
+		/* Initialize the error code */
+		dmaManager->ErrorCode = HAL_DMA_ERROR_NONE;
+
+		/* Configure the source, destination address and the data length */
+		DMA_SetConfig(dmaManager, SrcAddress, DstAddress, DataLength);
+
+		/* Enable the Peripheral */
+		dmaManager->Instance->CR |=  DMA_SxCR_EN;
+	}
 }
 
 
@@ -109,7 +185,7 @@ uint32 DMA_PollForTransfer(HAL_DMA_LevelCompleteTypeDef CompleteLevel){
 	uint32 mask_cpltlevel;
 
 	/* Polling mode not supported in circular mode and double buffering mode */
-	if ((DMA2_Stream2->CR & DMA_SxCR_CIRC) != 0)   //if circular mode is not rest(is enable)
+	if ((dmaManager->Instance->CR & DMA_SxCR_CIRC) != 0)   //if circular mode is not rest(is enable)
 	{
 		//error
 	}
@@ -154,27 +230,55 @@ uint32 DMA_PollForTransfer(HAL_DMA_LevelCompleteTypeDef CompleteLevel){
 
 
 
-// //DMA_HandleTypeDef *hdma
-// // instance is the base address of the stream reg stuct
-// static uint32_t DMA_CalcBaseAndBitshift(DMA_Stream_TypeDef* streamAddressBaseNumber)
-// {
-// 	//(0x10 & 0x018) are magic number that conclude the number of the stream from the address
-//   uint32_t stream_number = (((uint32_t)streamAddressBaseNumber & 0xFFU) - 0x10U) / 0x18U;
+
+
+
+void HAL_DMA_Start_IT(DMA_HandleTypeDef* dmaManager, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength)
+{
+
+  /* calculate DMA base and stream number */
+  DMA_Base_Registers *regs = (DMA_Base_Registers *)dmaManager->StreamBaseAddress;
   
-//   /* lookup table for necessary bitshift of flags within status registers */
-//   static const uint8_t flagBitshiftOffset[8U] = {0U, 6U, 16U, 22U, 0U, 6U, 16U, 22U};
-//   hdma->StreamIndex = flagBitshiftOffset[stream_number]; /* *****you need to make a handler STRUCT ******* */
+  /* Check the parameters */
+  assert_param(IS_DMA_BUFFER_SIZE(DataLength));
+ 
+  /* Process locked */
+//   __HAL_LOCK(hdma);
   
-//   if (stream_number > 3U)
-//   {
-//     /* return pointer to HISR and HIFCR */
-//     hdma->StreamBaseAddress = (((uint32_t)hdma->Instance & (uint32_t)(~0x3FFU)) + 4U);
+  if(HAL_DMA_STATE_READY == hdma->State)
+  {
+    /* Change DMA peripheral state */
+    dmaManager->State = HAL_DMA_STATE_BUSY;
+    
+    /* Initialize the error code */
+    dmaManager->ErrorCode = HAL_DMA_ERROR_NONE;
+    
+    /* Configure the source, destination address and the data length */
+    DMA_SetConfig(dmaManager, SrcAddress, DstAddress, DataLength);
+    
+    /* Clear all interrupt flags at correct offset within the register */
+    regs->IFCR = 0x3FU << hdma->StreamIndex;
+    
+    /* Enable Common interrupts*/
+    hdma->Instance->CR  |= DMA_IT_TC | DMA_IT_TE | DMA_IT_DME;
+    
+	// half transfer callback function and interrupt enable
+    // if(dmaManager->XferHalfCpltCallback != NULL)
+    // {
+    //   dmaManager->Instance->CR  |= DMA_IT_HT;
+    // }
+    
+    /* Enable the Peripheral */
+		dmaManager->Instance->CR |=  DMA_SxCR_EN;
 //   }
 //   else
 //   {
-//     /* return pointer to LISR and LIFCR */
-//     hdma->StreamBaseAddress = ((uint32_t)hdma->Instance & (uint32_t)(~0x3FFU));
+//     /* Process unlocked */
+//     __HAL_UNLOCK(hdma);	  
+    
+//     /* Return error status */
+//     status = HAL_BUSY;
 //   }
   
-//   return hdma->StreamBaseAddress;
-// }
+  return;
+}

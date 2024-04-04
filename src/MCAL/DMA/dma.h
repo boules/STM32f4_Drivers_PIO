@@ -1,4 +1,5 @@
-
+#ifndef DMA_H
+#define DMA_H
 
 /**
  * options to configure
@@ -31,6 +32,7 @@
 
 
 #include "platform_types.h"
+#include "dma_regs.h"
 
 
 /** @defgroup DMA_Exported_Types DMA Exported Types
@@ -90,6 +92,58 @@ typedef struct
                                       This parameter can be a value of @ref DMA_Peripheral_burst
                                       @note The burst mode is possible only if the address Increment mode is enabled. */
 }DMA_InitTypeDef;
+
+
+
+typedef enum
+{
+  HAL_DMA_STATE_RESET             = 0x00U,  /*!< DMA not yet initialized or disabled */
+  HAL_DMA_STATE_READY             = 0x01U,  /*!< DMA initialized and ready for use   */
+  HAL_DMA_STATE_BUSY              = 0x02U,  /*!< DMA process is ongoing              */
+  HAL_DMA_STATE_TIMEOUT           = 0x03U,  /*!< DMA timeout state                   */
+  HAL_DMA_STATE_ERROR             = 0x04U,  /*!< DMA error state                     */
+  HAL_DMA_STATE_ABORT             = 0x05U,  /*!< DMA Abort state                     */
+}HAL_DMA_StateTypeDef;
+
+////////////////////////////////////
+typedef struct __DMA_HandleTypeDef
+{
+	DMA_RegStruct				*moduleBase;
+
+	DMA_Stream_TypeDef			*Instance;                                                        /*!< Register base address                  */
+
+	DMA_InitTypeDef            Init;                                                             /*!< DMA communication parameters           */ 
+
+//   HAL_LockTypeDef            Lock;                                                             /*!< DMA locking object                     */  
+
+	__IO HAL_DMA_StateTypeDef  State;                                                            /*!< DMA transfer state                     */
+
+	void                       *Parent;                                                          /*!< Parent object state                    */ 
+
+//   void                       (* XferCpltCallback)( struct __DMA_HandleTypeDef * hdma);         /*!< DMA transfer complete callback         */
+
+//   void                       (* XferHalfCpltCallback)( struct __DMA_HandleTypeDef * hdma);     /*!< DMA Half transfer complete callback    */
+
+//   void                       (* XferM1CpltCallback)( struct __DMA_HandleTypeDef * hdma);       /*!< DMA transfer complete Memory1 callback */
+  
+//   void                       (* XferM1HalfCpltCallback)( struct __DMA_HandleTypeDef * hdma);   /*!< DMA transfer Half complete Memory1 callback */
+  
+//   void                       (* XferErrorCallback)( struct __DMA_HandleTypeDef * hdma);        /*!< DMA transfer error callback            */
+  
+//   void                       (* XferAbortCallback)( struct __DMA_HandleTypeDef * hdma);        /*!< DMA transfer Abort callback            */  
+
+  __IO uint32_t              ErrorCode;                                                        /*!< DMA Error code                          */
+  
+  uint32_t                   StreamBaseAddress;                                                /*!< DMA Stream Base Address                */
+
+  uint32_t                   StreamIndex;                                                      /*!< DMA Stream Index                       */
+ 
+}DMA_HandleTypeDef;
+
+
+
+
+
 
 
 
@@ -168,8 +222,43 @@ typedef struct
 
 
 
+/** @defgroup DMA_Error_Code DMA Error Code
+  * @brief    DMA Error Code 
+  * @{
+  */ 
+#define HAL_DMA_ERROR_NONE            0x00000000U    /*!< No error                               */
+#define HAL_DMA_ERROR_TE              0x00000001U    /*!< Transfer error                         */
+#define HAL_DMA_ERROR_FE              0x00000002U    /*!< FIFO error                             */
+#define HAL_DMA_ERROR_DME             0x00000004U    /*!< Direct Mode error                      */
+#define HAL_DMA_ERROR_TIMEOUT         0x00000020U    /*!< Timeout error                          */
+#define HAL_DMA_ERROR_PARAM           0x00000040U    /*!< Parameter error                        */
+#define HAL_DMA_ERROR_NO_XFER         0x00000080U    /*!< Abort requested with no Xfer ongoing   */
+#define HAL_DMA_ERROR_NOT_SUPPORTED   0x00000100U    /*!< Not supported mode                     */
 
 
+
+/** @defgroup DMA_Channel_selection DMA Channel selection
+  * @brief    DMA channel selection 
+  * @{
+  */ 
+#define DMA_CHANNEL_0                 0x00000000U    /*!< DMA Channel 0 */
+#define DMA_CHANNEL_1                 0x02000000U    /*!< DMA Channel 1 */
+#define DMA_CHANNEL_2                 0x04000000U    /*!< DMA Channel 2 */
+#define DMA_CHANNEL_3                 0x06000000U    /*!< DMA Channel 3 */
+#define DMA_CHANNEL_4                 0x08000000U    /*!< DMA Channel 4 */
+#define DMA_CHANNEL_5                 0x0A000000U    /*!< DMA Channel 5 */
+#define DMA_CHANNEL_6                 0x0C000000U    /*!< DMA Channel 6 */
+#define DMA_CHANNEL_7                 0x0E000000U    /*!< DMA Channel 7 */
+#if defined (DMA_SxCR_CHSEL_3)
+#define DMA_CHANNEL_8                 0x10000000U    /*!< DMA Channel 8 */
+#define DMA_CHANNEL_9                 0x12000000U    /*!< DMA Channel 9 */
+#define DMA_CHANNEL_10                0x14000000U    /*!< DMA Channel 10 */
+#define DMA_CHANNEL_11                0x16000000U    /*!< DMA Channel 11 */
+#define DMA_CHANNEL_12                0x18000000U    /*!< DMA Channel 12 */
+#define DMA_CHANNEL_13                0x1A000000U    /*!< DMA Channel 13 */
+#define DMA_CHANNEL_14                0x1C000000U    /*!< DMA Channel 14 */
+#define DMA_CHANNEL_15                0x1E000000U    /*!< DMA Channel 15 */
+#endif /* DMA_SxCR_CHSEL_3 */
 
 
 
@@ -350,6 +439,8 @@ typedef enum
 
 
 
-void DMA_Init(DMA_InitTypeDef* configPtr);
+void DMA_Init(DMA_HandleTypeDef* dmaManager);
 void DMA_start(uint32 stream, uint32 SrcAddress, uint32 DstAddress, uint32 DataLength);
 uint32 DMA_PollForTransfer(HAL_DMA_LevelCompleteTypeDef CompleteLevel);
+
+#endif /*DMA_H*/
