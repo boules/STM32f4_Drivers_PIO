@@ -23,6 +23,11 @@ basic parameters:
 #include "common_macros.h"
 #include "nvic.h"
 
+/*****************************************************************************************/
+/*********************************** USART FUNCTIONS *************************************/
+/*****************************************************************************************/
+
+/** USART initialize function ******************************************************************/
 void USART_Init(USART_ManagerStruct *usartxManger)
 {
 
@@ -66,6 +71,11 @@ void USART_Init(USART_ManagerStruct *usartxManger)
 	return;
 }
 
+
+
+
+/** USART functions that uses the interrupts ***************************************************/
+// Transmit functions by interrupts
 MCALStatus_t USART_startTransmit_IT(USART_ManagerStruct *usartxManger, const uint8 *pData, uint16 Size)
 {
 	if (usartxManger->txState != USART_STATE_READY)
@@ -94,8 +104,7 @@ MCALStatus_t USART_startTransmit_IT(USART_ManagerStruct *usartxManger, const uin
 	return MCAL_OK;
 }
 
-//static 
-MCALStatus_t USART_TransmitData_IT(USART_ManagerStruct *usartxManger)
+static MCALStatus_t USART_TransmitData_IT(USART_ManagerStruct *usartxManger)
 {
 	const uint16_t *tmp;
 
@@ -140,10 +149,8 @@ static MCALStatus_t USART_endTransmit_IT(USART_ManagerStruct *usartxManger)
 	return MCAL_OK;
 }
 
-
-
-
-MCALStatus_t USART_startRecieve_IT(USART_ManagerStruct *usartxManger, uint8_t *pData, uint16_t Size)
+// Recieve functions by interrupts
+MCALStatus_t USART_startReceive_IT(USART_ManagerStruct *usartxManger, uint8_t *pData, uint16_t Size)
 {
 	/* Check that a Rx process is not already ongoing */
 	if (usartxManger->rxState == USART_STATE_READY)
@@ -292,9 +299,11 @@ static void UART_EndRxTransfer(USART_ManagerStruct *usartxManger)
 	usartxManger->rxState = USART_STATE_READY;
 	//   usartxManger->ReceptionType = HAL_UART_RECEPTION_STANDARD;
 }
-/*****************************************************************************************/
-/***********************************POLLING FUNCTIONS*************************************/
-/*****************************************************************************************/
+
+
+
+
+/** USART functions that uses polling ***********************************************************/
 void USART_sendByte_polling(USART_ManagerStruct *usartxManger, const uint8 data)
 {
 	/* 1. wait til the TDR is empty and ready to take-in data (wait for the TXE flag).
@@ -330,15 +339,15 @@ uint8 USART_recieveByte_polling(USART_ManagerStruct *usartxManger)
 
 
 
-/*****************************************************************************************/
-typedef enum
-{
+
+/** USART Interrupt Handler Function ************************************************************/
+
+enum FlagStatus{
 	RESET = 0U,
 	SET = !RESET
-} FlagStatus,
-	ITStatus;
+}
 
-void HAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
+void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 {
 	uint32_t isrflags = (usartxManger->moduleBase->SR);
 	uint32_t cr1its = (usartxManger->moduleBase->CR1);
@@ -346,47 +355,45 @@ void HAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 	uint32_t errorflags = 0x00U;
 	uint32_t dmarequest = 0x00U;
 
+
+	errorflags = (isrflags & (uint32_t)(USART_SR_ORE | USART_SR_NE | USART_SR_FE | USART_SR_PE));
+	//receive mode and no error
 	/* If no error occurs */
-	errorflags = (isrflags & (uint32_t)(USART_SR_PE | USART_SR_FE | USART_SR_ORE | USART_SR_NE));
 	if (errorflags == RESET)
 	{
 		/* UART in mode Receiver -------------------------------------------------*/
-		if (((isrflags & USART_SR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET))
-		{
+		if (((isrflags & USART_SR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET)){
 			USART_ReceiveData_IT(usartxManger);
-			return;
+			return;	//no error and recieve mode receives
 		}
 	}
 
+	//error
 	/* If some errors occur Abort (cancel all recive it. and fn. and return)*/
 	if ((errorflags != RESET) && (((cr3its & USART_CR3_EIE) != RESET) || ((cr1its & (USART_CR1_RXNEIE | USART_CR1_PEIE)) != RESET)))
 	{
 		/* UART parity error interrupt occurred ----------------------------------*/
-		if (((isrflags & USART_SR_PE) != RESET) && ((cr1its & USART_CR1_PEIE) != RESET))
-		{
+		if (((isrflags & USART_SR_PE) != RESET) && ((cr1its & USART_CR1_PEIE) != RESET)){
 			usartxManger->ErrorCode |= USART_ERROR_PE;
 		}
 
-		/* UART frame error interrupt occurred -----------------------------------*/
-		if (((isrflags & USART_SR_FE) != RESET) && ((cr3its & USART_CR3_EIE) != RESET))
-		{
+		/* UART frame error flag is raised ------------------------------------*/
+		if (((isrflags & USART_SR_FE) != RESET) && ((cr3its & USART_CR3_EIE) != RESET)){
 			usartxManger->ErrorCode |= USART_ERROR_FE;
 		}
 
-		/* UART noise error interrupt occurred -----------------------------------*/
-		if (((isrflags & USART_SR_NE) != RESET) && ((cr3its & USART_CR3_EIE) != RESET))
-		{
+		/* UART noise error flag is raised --*/ //the noise flag doesn't generate interrupt. it is raised at receiving as same time as RXNE interrupt.
+		if (((isrflags & USART_SR_NE) != RESET) && ((cr3its & USART_CR3_EIE) != RESET)){
 			usartxManger->ErrorCode |= USART_ERROR_NE;
 		}
 
 		/* UART Over-Run interrupt occurred --------------------------------------*/
-		if (((isrflags & USART_SR_ORE) != RESET) && (((cr1its & USART_CR1_RXNEIE) != RESET) || ((cr3its & USART_CR3_EIE) != RESET)))
-		{
+		if (((isrflags & USART_SR_ORE) != RESET) && (((cr1its & USART_CR1_RXNEIE) != RESET) || ((cr3its & USART_CR3_EIE) != RESET))){
 			usartxManger->ErrorCode |= USART_ERROR_ORE;
 		}
 
 		/* Call UART Error Call back function if need be --------------------------*/
-		// if there is an error   recive if there is data in DR and then ABORT
+		// if there is an error and its interrupt is enabled   receive if there is data in DR and then ABORT
 		if (usartxManger->ErrorCode != USART_ERROR_NONE)
 		{
 			/* UART in mode Receiver -----------------------------------------------*/
