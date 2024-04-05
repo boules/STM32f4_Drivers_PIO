@@ -156,6 +156,5 @@ MCALStatus_t USART_startTransmit_IT(USART_ManagerStruct *usartxManger, const uin
 MCALStatus_t USART_startReceive_IT(USART_ManagerStruct *usartxManger, uint8_t *pData, uint16_t Size);
 void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger);
 
-extern USART_ManagerStruct usart1Manager;
 
 #endif

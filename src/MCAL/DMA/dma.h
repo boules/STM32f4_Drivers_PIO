@@ -442,7 +442,7 @@ typedef enum
 
 void DMA_Init(DMA_HandleTypeDef* dmaManager);
 void DMA_start(DMA_HandleTypeDef* dmaManager, uint32 SrcAddress, uint32 DstAddress, uint32 DataLength);
-void HAL_DMA_Start_IT(DMA_HandleTypeDef* dmaManager, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength);
+void DMA_Start_IT(DMA_HandleTypeDef* dmaManager, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength);
 MCALStatus_t DMA_PollForTransfer(DMA_HandleTypeDef *hdma, HAL_DMA_LevelCompleteTypeDef CompleteLevel);
 void HAL_DMA_IRQHandler(DMA_HandleTypeDef *hdma);
 

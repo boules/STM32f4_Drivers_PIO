@@ -149,6 +149,24 @@ __STATIC_FORCEINLINE uint32_t __STREXW(uint32_t value, volatile uint32_t *addr)
   } while(0)
 
 
+#define ATOMIC_SET_BIT(REG, BIT)                             \
+  do {                                                       \
+    uint32_t val;                                            \
+    do {                                                     \
+      val = __LDREXW((__IO uint32_t *)&(REG)) | (BIT);       \
+    } while ((__STREXW(val,(__IO uint32_t *)&(REG))) != 0U); \
+  } while(0)
 
+
+
+
+/* Atomic 32-bit register access macro to clear and set one or several bits */
+#define ATOMIC_MODIFY_REG(REG, CLEARMSK, SETMASK)                          \
+  do {                                                                     \
+    uint32_t val;                                                          \
+    do {                                                                   \
+      val = (__LDREXW((__IO uint32_t *)&(REG)) & ~(CLEARMSK)) | (SETMASK); \
+    } while ((__STREXW(val,(__IO uint32_t *)&(REG))) != 0U);               \
+  } while(0)
 
 #endif /* COMMON_MACROS_H */

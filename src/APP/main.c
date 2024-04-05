@@ -27,6 +27,7 @@
 // #include "sched.h"
 #include "dio.h"
 #include "lcd.h"
+#include "dma.h"
 
 
 /* Private defines ------------------------------------------------------------*/
@@ -42,6 +43,9 @@
 extern Port_ConfigPinStruct Port_pinConfigurationSet[configuredPins];
 extern USART_InitStruct UsartConfigurationSet;
 extern I2C_InitTypeDef I2cConfigurationSet;
+
+extern USART_ManagerStruct usart1Manager;
+extern DMA_HandleTypeDef dma2Manager_stream2_usart1_rx;
 /* USER CODE END EV */
 
 /* Private functions ------------------------------------------------------------*/
@@ -55,6 +59,7 @@ int main(void)
 	Port_Init(Port_pinConfigurationSet);
 	USART_Init(&usart1Manager);
 	// I2C_Init(1, &I2cConfigurationSet);
+	DMA_Init(dma2Manager_stream2_usart1_rx);
 
 
 
@@ -85,6 +90,20 @@ int main(void)
 			
 		}
 	}
+
+
+
+
+	DMA_Init(dmaManager_usart1_rx);
+	/* USART1 interrupt Init */
+	HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(USART1_IRQn);
+
+	HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+	/* DMA2_Stream7_IRQn interrupt configuration */
+	HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 
 
 	// while1

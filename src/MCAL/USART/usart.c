@@ -22,6 +22,7 @@ basic parameters:
 #include "usart_regs.h"
 #include "common_macros.h"
 #include "nvic.h"
+#include "dma.h"
 
 /*****************************************************************************************/
 /*********************************** USART FUNCTIONS *************************************/
@@ -358,7 +359,7 @@ void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 
 	errorflags = (isrflags & (uint32_t)(USART_SR_ORE | USART_SR_NE | USART_SR_FE | USART_SR_PE));
 	//receive mode and no error
-	/* If no error occurs */
+	/* If no error occurs, receive*/
 	if (errorflags == RESET)
 	{
 		/* UART in mode Receiver -------------------------------------------------*/
@@ -542,3 +543,138 @@ void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 		return;
 	}
 }
+
+
+
+
+
+
+
+
+
+/***********************************************************************************************************************/
+/*********************************************** USART using DMA *******************************************************/
+/***********************************************************************************************************************/
+/***********************************************************************************************************************/
+
+MCALStatus_t HAL_UART_Transmit_DMA(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size)
+{
+  const uint32_t *tmp;
+
+  /* Check that a Tx process is not already ongoing */
+  if (huart->txState == USART_STATE_READY)
+  {
+    if ((pData == NULL) || (Size == 0U))
+    {
+      return MCAL_ERROR;
+    }
+
+    huart->pTxBuffPtr = pData;
+    huart->TxXferSize = Size;
+    huart->TxXferCount = Size;
+
+    huart->ErrorCode = USART_ERROR_NONE;
+    huart->txState = USART_STATE_BUSY_TX;
+
+    /* Set the UART DMA transfer complete callback */
+    huart->hdmatx->XferCpltCallback = UART_DMATransmitCplt;
+
+    /* Set the UART DMA Half transfer complete callback */
+    huart->hdmatx->XferHalfCpltCallback = UART_DMATxHalfCplt;
+
+    /* Set the DMA error callback */
+    huart->hdmatx->XferErrorCallback = UART_DMAError;
+
+    /* Set the DMA abort callback */
+    huart->hdmatx->XferAbortCallback = NULL;
+
+    /* Enable the UART transmit DMA stream */
+    tmp = (const uint32_t *)&pData;
+    HAL_DMA_Start_IT(huart->hdmatx, *(const uint32_t *)tmp, (uint32_t)&huart->Instance->DR, Size);
+
+    /* Clear the TC flag in the SR register by writing 0 to it */
+    __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_TC);
+
+    /* Enable the DMA transfer for transmit request by setting the DMAT bit
+       in the UART CR3 register */
+    ATOMIC_SET_BIT(huart->Instance->CR3, USART_CR3_DMAT);
+
+    return MCAL_OK;
+  }
+  else
+  {
+    return MCAL_BUSY;
+  }
+}
+
+
+
+MCALStatus_t HAL_UART_Receive_DMA(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size)
+{
+  /* Check that a Rx process is not already ongoing */
+  if (huart->rxState == USART_STATE_READY)
+  {
+    if ((pData == NULL) || (Size == 0U))
+    {
+      return MCAL_ERROR;
+    }
+
+    /* Set Reception type to Standard reception */
+    // huart->ReceptionType = HAL_UART_RECEPTION_STANDARD;
+
+    return (UART_Start_Receive_DMA(huart, pData, Size));
+  }
+  else
+  {
+    return MCAL_BUSY;
+  }
+}
+
+MCALStatus_t UART_Start_Receive_DMA(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size)
+{
+  uint32_t *tmp;
+
+  huart->pRxBuffPtr = pData;
+  huart->RxXferSize = Size;
+
+  huart->ErrorCode = USART_ERROR_NONE;
+  huart->rxState = USART_STATE_BUSY_RX;
+
+  /* Set the UART DMA transfer complete callback */
+  huart->hdmarx->XferCpltCallback = UART_DMAReceiveCplt;
+
+  /* Set the UART DMA Half transfer complete callback */
+  huart->hdmarx->XferHalfCpltCallback = UART_DMARxHalfCplt;
+
+  /* Set the DMA error callback */
+  huart->hdmarx->XferErrorCallback = UART_DMAError;
+
+  /* Set the DMA abort callback */
+  huart->hdmarx->XferAbortCallback = NULL;
+
+  /* Enable the DMA stream */
+  tmp = (uint32_t *)&pData;
+  HAL_DMA_Start_IT(huart->hdmarx, (uint32_t)&huart->Instance->DR, *(uint32_t *)tmp, Size);
+
+  /* Clear the Overrun flag just before enabling the DMA Rx request: can be mandatory for the second transfer */
+  __HAL_USART_CLEAR_OREFLAG(huart);
+
+  if (huart->Init.Parity != USART_PARITY_NONE)
+  {
+    /* Enable the UART Parity Error Interrupt */
+    ATOMIC_SET_BIT(huart->Instance->CR1, USART_CR1_PEIE);
+  }
+
+  /* Enable the UART Error Interrupt: (Frame error, noise error, overrun error) */
+  ATOMIC_SET_BIT(huart->Instance->CR3, USART_CR3_EIE);
+
+  /* Enable the DMA transfer for the receiver request by setting the DMAR bit
+  in the UART CR3 register */
+  ATOMIC_SET_BIT(huart->Instance->CR3, USART_CR3_DMAR);
+
+  return MCAL_OK;
+}
+
+
+
+

@@ -5,7 +5,7 @@
 
 /* USART1 DMA Managers */
  /* USART1_RX Init */
-DMA_HandleTypeDef dmaManager_usart1_rx={
+DMA_HandleTypeDef dma2Manager_stream2_usart1_rx={
 	.moduleBase = DMA2,
 	.Instance = DMA2_Stream2,
 	.Init ={
@@ -26,7 +26,7 @@ DMA_HandleTypeDef dmaManager_usart1_rx={
 };
 
 /* USART1_TX Init */
-DMA_HandleTypeDef dmaManager_usart1_tx={
+DMA_HandleTypeDef dma2Manager_stream2_usart1_tx={
 	.moduleBase = DMA2,
 	.Instance = DMA2_Stream7,
 	.Init ={
