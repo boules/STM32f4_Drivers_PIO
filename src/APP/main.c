@@ -22,12 +22,13 @@
 #include "delay.h"
 #include "port.h"
 #include "usart.h"
-#include "i2c.h"
+// #include "i2c.h"
 // #include "systick.h"
 // #include "sched.h"
 #include "dio.h"
 #include "lcd.h"
 #include "dma.h"
+#include "nvic.h"
 
 
 /* Private defines ------------------------------------------------------------*/
@@ -42,7 +43,7 @@
 /* USER CODE BEGIN EV */
 extern Port_ConfigPinStruct Port_pinConfigurationSet[configuredPins];
 extern USART_InitStruct UsartConfigurationSet;
-extern I2C_InitTypeDef I2cConfigurationSet;
+// extern I2C_InitTypeDef I2cConfigurationSet;
 
 extern USART_ManagerStruct usart1Manager;
 extern DMA_HandleTypeDef dma2Manager_stream2_usart1_rx;
@@ -69,7 +70,7 @@ int main(void)
 	LCD_displayString("Welcome To LCD");
 	LCD_displayStringRowColumn(1, 0, "4 Bits Data Mode");
 
-	delay_ms(200);
+	delay_ms(100);
 	LCD_clearScreen();
 	LCD_displayStringRowColumn(0, 0, "Hi, Boules");
 	LCD_displayStringRowColumn(1, 0, "Hoppa FADY");
@@ -78,7 +79,7 @@ int main(void)
 //UART interrupts testing 
 	// uint8 data;
 	uint8 usart_recieve_buffer[5] = {'0', '0', '0', '0', '0'};
-	delay_ms(1000);
+	delay_ms(100);
 	if (USART_startReceive_IT(&usart1Manager, usart_recieve_buffer, 5) != MCAL_OK){
 		while(1){}
 	}
@@ -94,16 +95,33 @@ int main(void)
 
 
 
-	DMA_Init(dmaManager_usart1_rx);
 	/* USART1 interrupt Init */
-	HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(USART1_IRQn);
+	__NVIC_SetPriority(USART1_IRQn, 0, 0);
+	__NVIC_EnableIRQ(USART1_IRQn);
 
-	HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+	__NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
+	__NVIC_EnableIRQ(DMA2_Stream2_IRQn);
 	/* DMA2_Stream7_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
+	__NVIC_SetPriority(DMA2_Stream7_IRQn, 0, 0);
+	__NVIC_EnableIRQ(DMA2_Stream7_IRQn);
+
+
+	uint32 distinationAddress = 0x0800C000;
+	
+	DMA_start(dma2Manager_stream2_usart1_rx, , distinationAddress, 6);
+	if( DMA_PollForTransfer(dma2Manager_stream2_usart1_rx, HAL_DMA_FULL_TRANSFER)    == MCAL_ERROR)
+	{	
+		/*error*/
+		while(1);
+	}
+
+
+
+
+
+
+
+
 
 
 	// while1

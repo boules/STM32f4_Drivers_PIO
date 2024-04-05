@@ -163,13 +163,11 @@ static void DMA_SetConfig(DMA_HandleTypeDef* dmaManager, uint32_t SrcAddress, ui
 
 void DMA_start(DMA_HandleTypeDef* dmaManager, uint32 SrcAddress, uint32 DstAddress, uint32 DataLength){
 
-	if(((DataLength) >= 0x01U) && ((DataLength) < 0x10000U)){
-
-	}else{
-		;
+	//check size range
+	if(((DataLength) < 0x01U) ||  (0xffffU < (DataLength)) ){
 		/*ERROR*/
 	}
-	// assert_param(IS_DMA_BUFFER_SIZE(DataLength));
+	//(or) assert_param(IS_DMA_BUFFER_SIZE(DataLength));
 
 	if(HAL_DMA_STATE_READY == dmaManager->State)
 	{
@@ -204,10 +202,8 @@ void DMA_Start_IT(DMA_HandleTypeDef* dmaManager, uint32_t SrcAddress, uint32_t D
   DMA_Base_Registers *regs = (DMA_Base_Registers *)dmaManager->StreamBaseAddress;
   
   /* Check the parameters */
-  	if(((DataLength) >= 0x01U) && ((DataLength) < 0x10000U)){
-
-	}else{
-		;
+  	//check size range
+	if(((DataLength) < 0x01U) ||  (0xffffU < (DataLength)) ){
 		/*ERROR*/
 	}
 	//   assert_param(IS_DMA_BUFFER_SIZE(DataLength));
@@ -323,12 +319,12 @@ MCALStatus_t DMA_PollForTransfer(DMA_HandleTypeDef *hdma, HAL_DMA_LevelCompleteT
   if(CompleteLevel == HAL_DMA_FULL_TRANSFER)
   {
     /* Transfer Complete flag */
-    mask_cpltlevel = DMA_FLAG_TCIF0_4 << hdma->StreamIndex;
+    mask_cpltlevel = DMA_FLAG_TCIF << hdma->StreamIndex;
   }
   else
   {
     /* Half Transfer Complete flag */
-    mask_cpltlevel = DMA_FLAG_HTIF0_4 << hdma->StreamIndex;
+    mask_cpltlevel = DMA_FLAG_HTIF << hdma->StreamIndex;
   }
   
   regs = (DMA_Base_Registers *)hdma->StreamBaseAddress;

@@ -187,7 +187,7 @@ MCALStatus_t USART_startReceive_IT(USART_ManagerStruct *usartxManger, uint8_t *p
 		usartxManger->moduleBase->CR1 |= (USART_CR1_RXNEIE_Msk);
 
 		/* enable usart global interrupt*/
-		__NVIC_EnableIRQ(USART1_IRQn);
+		__NVIC_EnableIRQ(USART1_IRQn);//usart1 you need to be be hadle with all usarts
 
 		return MCAL_OK;
 	}
