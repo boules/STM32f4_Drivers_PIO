@@ -62,6 +62,26 @@ typedef struct
 /******************************************************************************/
 /*******************  Bit definition for USART_SR register  *******************/
 
+/** @defgroup UART_Flags   UART FLags
+  *        Elements values convention: 0xXXXX
+  *           - 0xXXXX  : Flag mask in the SR register
+  * @{
+  */
+#define UART_FLAG_CTS                       ((uint32_t)USART_SR_CTS)
+#define UART_FLAG_LBD                       ((uint32_t)USART_SR_LBD)
+#define UART_FLAG_TXE                       ((uint32_t)USART_SR_TXE)
+#define UART_FLAG_TC                        ((uint32_t)USART_SR_TC)
+#define UART_FLAG_RXNE                      ((uint32_t)USART_SR_RXNE)
+#define UART_FLAG_IDLE                      ((uint32_t)USART_SR_IDLE)
+#define UART_FLAG_ORE                       ((uint32_t)USART_SR_ORE)
+#define UART_FLAG_NE                        ((uint32_t)USART_SR_NE)
+#define UART_FLAG_FE                        ((uint32_t)USART_SR_FE)
+#define UART_FLAG_PE                        ((uint32_t)USART_SR_PE)
+
+
+
+
+/*******************  Bit definition for USART_SR register  *******************/
 #define USART_SR_PE_Pos               (0U)
 #define USART_SR_PE_Msk               (0x1UL << USART_SR_PE_Pos)                /*!< 0x00000001 */
 #define USART_SR_PE                   USART_SR_PE_Msk                          /*!<Parity Error                 */

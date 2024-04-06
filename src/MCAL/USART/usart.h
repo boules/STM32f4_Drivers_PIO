@@ -3,6 +3,7 @@
 
 #include "platform_types.h"
 #include "usart_regs.h"
+#include "dma.h"
 
 
 
@@ -117,6 +118,14 @@ typedef struct USART_ManagerStruct
   uint16_t                      RxXferSize;       /*!< UART Rx Transfer size              */
 
   __IO uint16_t                 RxXferCount;      /*!< UART Rx Transfer Counter           */
+
+
+
+  DMA_HandleTypeDef             *hdmatx;          /*!< UART Tx DMA Handle parameters      */
+
+  DMA_HandleTypeDef             *hdmarx;          /*!< UART Rx DMA Handle parameters      */
+
+
 
 
 
