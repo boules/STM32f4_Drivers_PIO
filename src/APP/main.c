@@ -46,7 +46,8 @@ extern USART_InitStruct UsartConfigurationSet;
 // extern I2C_InitTypeDef I2cConfigurationSet;
 
 extern USART_ManagerStruct usart1Manager;
-extern DMA_HandleTypeDef dma2Manager_stream2_usart1_rx;
+// extern DMA_HandleTypeDef dma2Manager_stream2_usart1_rx;
+extern DMA_HandleTypeDef dma2Manager_stream0_memtomem;
 /* USER CODE END EV */
 
 /* Private functions ------------------------------------------------------------*/
@@ -60,7 +61,8 @@ int main(void)
 	Port_Init(Port_pinConfigurationSet);
 	USART_Init(&usart1Manager);
 	// I2C_Init(1, &I2cConfigurationSet);
-	DMA_Init(dma2Manager_stream2_usart1_rx);
+	// DMA_Init(&dma2Manager_stream2_usart1_rx);
+	DMA_Init(&dma2Manager_stream0_memtomem);
 
 
 
@@ -96,23 +98,40 @@ int main(void)
 
 
 	/* USART1 interrupt Init */
-	__NVIC_SetPriority(USART1_IRQn, 0, 0);
-	__NVIC_EnableIRQ(USART1_IRQn);
+	// __NVIC_SetPriority(USART1_IRQn, 0, 0);
+	// __NVIC_EnableIRQ(USART1_IRQn);
 
-	__NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
-	__NVIC_EnableIRQ(DMA2_Stream2_IRQn);
-	/* DMA2_Stream7_IRQn interrupt configuration */
-	__NVIC_SetPriority(DMA2_Stream7_IRQn, 0, 0);
-	__NVIC_EnableIRQ(DMA2_Stream7_IRQn);
+	// __NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
+	// __NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+	// /* DMA2_Stream7_IRQn interrupt configuration */
+	// __NVIC_SetPriority(DMA2_Stream7_IRQn, 0, 0);
+	// __NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 
 
-	uint32 distinationAddress = 0x0800C000;
+	// volatile uint8 srcVariable = 5;
+	// volatile uint8 src2Variable = 2;
+	// volatile uint8 dstVariable = 0;
+	// // uint32 distinationAddress = 0x0800C000;
 	
-	DMA_start(dma2Manager_stream2_usart1_rx, , distinationAddress, 6);
-	if( DMA_PollForTransfer(dma2Manager_stream2_usart1_rx, HAL_DMA_FULL_TRANSFER)    == MCAL_ERROR)
-	{	
-		/*error*/
-		while(1);
+	// DMA_start(&dma2Manager_stream0_memtomem, (uint32)&srcVariable, (uint32)&dstVariable, 1);
+	// if( DMA_PollForTransfer(&dma2Manager_stream0_memtomem, HAL_DMA_FULL_TRANSFER)    == MCAL_ERROR)
+	// {	
+	// 	/*error*/
+	// 	while(1);
+	// }
+
+
+	// if (src2Variable == dstVariable){
+	// 	// success
+	// 	while(1){
+
+	// 	}
+
+	// }else {
+	// 	// fail
+	// 	while(1){
+
+	// 	}
 	}
 
 
@@ -160,3 +179,27 @@ int main(void)
 	 * while ( STK_isExpire() == 0);
 	 * 
 	 */
+
+//DMA memtomem
+	/**
+	 */
+	// volatile uint8 srcVariable = 5;
+	// volatile uint8 dstVariable = 0;
+	// // uint32 distinationAddress = 0x0800C000;
+	// DMA_start(&dma2Manager_stream0_memtomem, (uint32)&srcVariable, (uint32)&dstVariable, 1);
+	// if( DMA_PollForTransfer(&dma2Manager_stream0_memtomem, HAL_DMA_FULL_TRANSFER)    == MCAL_ERROR)
+	// {	
+	// 	/*error*/
+	// 	while(1);
+	// }
+	// if (srcVariable == dstVariable){
+	// 	// success
+	// 	while(1){
+	// 	}
+	// }else {
+	// 	// fail
+	// 	while(1){
+	// 	}
+	// }
+	 /* 
+	*/

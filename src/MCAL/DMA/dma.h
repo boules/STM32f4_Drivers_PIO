@@ -402,6 +402,13 @@ typedef struct __DMA_HandleTypeDef
   * @brief    DMA flag definitions 
   * @{
   */ 
+#define DMA_FLAG_FIFO_ERROR					0x00000001U
+#define DMA_FLAG_DIRECT_MODE_ERROR			0x00000004U
+#define DMA_FLAG_TRANSFER_ERROR				0x00000008U
+#define DMA_FLAG_HALF_TRANSFER				0x00000010U
+#define DMA_FLAG_TRANSFER_COMPLETE			0x00000020U
+
+
 #define DMA_FLAG_FEIF				0x00000001U
 #define DMA_FLAG_DMEIF				0x00000004U
 #define DMA_FLAG_TEIF				0x00000008U
