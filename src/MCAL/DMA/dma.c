@@ -15,6 +15,8 @@
 #include "platform_types.h"
 #include "rcc.h"
 #include "mcal_def.h"
+
+/*------------------------------------- DMA Static helping functions --------------------------------------------*/
 static MCALStatus_t DMA_CheckFifoParam(DMA_HandleTypeDef *hdma)
 {
   MCALStatus_t status = MCAL_OK;
@@ -120,7 +122,36 @@ static uint32_t DMA_CalcBaseAndBitshift(DMA_HandleTypeDef *hdma)
 
 	return hdma->StreamBaseAddress;
 }
+static void DMA_SetConfig(DMA_HandleTypeDef *dmaManager, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength)
+{
+	/* Clear DBM bit */
+	dmaManager->Instance->CR &= (uint32_t)(~DMA_SxCR_DBM);
 
+	/* Configure DMA Stream data length */
+	dmaManager->Instance->NDTR = DataLength;
+
+	/* Memory to Peripheral */
+	if ((dmaManager->Init.Direction) == DMA_MEMORY_TO_PERIPH)
+	{
+		/* Configure DMA Stream destination address */
+		dmaManager->Instance->PAR = DstAddress;
+
+		/* Configure DMA Stream source address */
+		dmaManager->Instance->M0AR = SrcAddress;
+	}
+	/* Peripheral to Memory */
+	else
+	{
+		/* Configure DMA Stream source address */
+		dmaManager->Instance->PAR = SrcAddress;
+
+		/* Configure DMA Stream destination address */
+		dmaManager->Instance->M0AR = DstAddress;
+	}
+}
+
+
+/*------------------------------------------- DMA Intialization function --------------------------------------------*/
 void DMA_Init(DMA_HandleTypeDef *dmaManager)
 {
 
@@ -211,38 +242,8 @@ void DMA_Init(DMA_HandleTypeDef *dmaManager)
 	// return MCAL_OK;
 }
 
-static void DMA_SetConfig(DMA_HandleTypeDef *dmaManager, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength)
-{
-	/* Clear DBM bit */
-	dmaManager->Instance->CR &= (uint32_t)(~DMA_SxCR_DBM);
 
-	/* Configure DMA Stream data length */
-	dmaManager->Instance->NDTR = DataLength;
-
-	/* Memory to Peripheral */
-	if ((dmaManager->Init.Direction) == DMA_MEMORY_TO_PERIPH)
-	{
-		/* Configure DMA Stream destination address */
-		dmaManager->Instance->PAR = DstAddress;
-
-		/* Configure DMA Stream source address */
-		dmaManager->Instance->M0AR = SrcAddress;
-	}
-	/* Peripheral to Memory */
-	else
-	{
-		/* Configure DMA Stream source address */
-		dmaManager->Instance->PAR = SrcAddress;
-
-		/* Configure DMA Stream destination address */
-		dmaManager->Instance->M0AR = DstAddress;
-	}
-}
-
-// need to put it on .h file
-#define IS_DMA_BUFFER_SIZE(SIZE) (((SIZE) >= 0x01U) && ((SIZE) < 0x10000U))
-#define assert_param(expr) ((expr) ? (void)0U : assert_failed((uint8_t *)__FILE__, __LINE__))
-
+/*---------------------------------------------- DMA Polling functions ----------------------------------------------*/
 void DMA_start(DMA_HandleTypeDef *dmaManager, uint32 SrcAddress, uint32 DstAddress, uint32 DataLength)
 {
 
@@ -268,63 +269,6 @@ void DMA_start(DMA_HandleTypeDef *dmaManager, uint32 SrcAddress, uint32 DstAddre
 		dmaManager->Instance->CR |= DMA_SxCR_EN;
 	}
 }
-
-
-void DMA_Start_IT(DMA_HandleTypeDef *dmaManager, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength)
-{
-
-	/* calculate DMA base and stream number */
-	DMA_Base_Registers *regs = (DMA_Base_Registers *)dmaManager->StreamBaseAddress;
-
-	/* Check the parameters */
-	// check size range
-	if (((DataLength) < 0x01U) || (0xffffU < (DataLength)))
-	{
-		/*ERROR*/
-	}
-	//   assert_param(IS_DMA_BUFFER_SIZE(DataLength));
-
-	/* Process locked */
-	//   __HAL_LOCK(hdma);
-
-	if (HAL_DMA_STATE_READY == dmaManager->State)
-	{
-		/* Change DMA peripheral state */
-		dmaManager->State = HAL_DMA_STATE_BUSY;
-
-		/* Initialize the error code */
-		dmaManager->ErrorCode = HAL_DMA_ERROR_NONE;
-
-		/* Configure the source, destination address and the data length */
-		DMA_SetConfig(dmaManager, SrcAddress, DstAddress, DataLength);
-
-		/* Clear all interrupt flags at correct offset within the register */
-		regs->IFCR = 0x3FU << dmaManager->StreamIndex;
-
-		/* Enable Common interrupts*/
-		dmaManager->Instance->CR |= DMA_IT_TC | DMA_IT_TE | DMA_IT_DME;
-
-		// half transfer callback function and interrupt enable
-		// if(dmaManager->XferHalfCpltCallback != NULL)
-		// {
-		//   dmaManager->Instance->CR  |= DMA_IT_HT;
-		// }
-
-		/* Enable the Peripheral */
-		dmaManager->Instance->CR |= DMA_SxCR_EN;
-	}
-	//   else //state not ready
-	//   {
-	//     /* Process unlocked */
-	//     __HAL_UNLOCK(hdma);
-
-	//     /* Return error status */
-	//     status = HAL_BUSY;
-	//   }
-
-	return;
-}
-
 MCALStatus_t DMA_PollForTransfer(DMA_HandleTypeDef *hdma, HAL_DMA_LevelCompleteTypeDef CompleteLevel /*, uint32_t Timeout*/)
 {
 	MCALStatus_t status = MCAL_OK;
@@ -463,8 +407,62 @@ MCALStatus_t DMA_PollForTransfer(DMA_HandleTypeDef *hdma, HAL_DMA_LevelCompleteT
 }
 
 
+/*--------------------------------------------------------------------------------------------------------------*/
+/*-------------------------------------------- DMA Interrupts functions --------------------------------------------*/
+void DMA_Start_IT(DMA_HandleTypeDef *dmaManager, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength)
+{
 
+	/* calculate DMA base and stream number */
+	DMA_Base_Registers *regs = (DMA_Base_Registers *)dmaManager->StreamBaseAddress;
 
+	/* Check the parameters */
+	// check size range
+	if (((DataLength) < 0x01U) || (0xffffU < (DataLength)))
+	{
+		/*ERROR*/
+	}
+	//   assert_param(IS_DMA_BUFFER_SIZE(DataLength));
+
+	/* Process locked */
+	//   __HAL_LOCK(hdma);
+
+	if (HAL_DMA_STATE_READY == dmaManager->State)
+	{
+		/* Change DMA peripheral state */
+		dmaManager->State = HAL_DMA_STATE_BUSY;
+
+		/* Initialize the error code */
+		dmaManager->ErrorCode = HAL_DMA_ERROR_NONE;
+
+		/* Configure the source, destination address and the data length */
+		DMA_SetConfig(dmaManager, SrcAddress, DstAddress, DataLength);
+
+		/* Clear all interrupt flags at correct offset within the register */
+		regs->IFCR = 0x3FU << dmaManager->StreamIndex;
+
+		/* Enable Common interrupts*/
+		dmaManager->Instance->CR |= DMA_IT_TC | DMA_IT_TE | DMA_IT_DME;
+
+		// half transfer callback function and interrupt enable
+		// if(dmaManager->XferHalfCpltCallback != NULL)
+		// {
+		//   dmaManager->Instance->CR  |= DMA_IT_HT;
+		// }
+
+		/* Enable the Peripheral */
+		dmaManager->Instance->CR |= DMA_SxCR_EN;
+	}
+	//   else //state not ready
+	//   {
+	//     /* Process unlocked */
+	//     __HAL_UNLOCK(hdma);
+
+	//     /* Return error status */
+	//     status = HAL_BUSY;
+	//   }
+
+	return;
+}
 
 /**
  * @brief  Handles DMA interrupt request.
