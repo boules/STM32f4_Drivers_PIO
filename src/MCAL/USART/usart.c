@@ -433,12 +433,12 @@ void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 						/* Call user error callback */
 					}
 				}
-			// 	else
-			// 	{
-			// 		/* Call user error callback */
-			// 	}
-			// }
-			// else
+				else
+				{
+					/* Call user error callback */
+				}
+			}
+			else
 			{
 				/* Non Blocking error : transfer could go on.
 				   Error is notified to user through user error callback */
