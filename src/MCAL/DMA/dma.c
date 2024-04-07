@@ -710,5 +710,5 @@ MCALStatus_t HAL_DMA_Abort_IT(DMA_HandleTypeDef *hdma)
 	(hdma->Instance->CR &= ~DMA_SxCR_EN);
   }
 
-  return HAL_OK;
+  return MCAL_OK;
 }
