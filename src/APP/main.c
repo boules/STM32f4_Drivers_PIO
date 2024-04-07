@@ -41,13 +41,16 @@
 
 /* Extern variables ---------------------------------------------------------*/
 /* USER CODE BEGIN EV */
+
+//-----------init configuration sets------
 extern Port_ConfigPinStruct Port_pinConfigurationSet[configuredPins];
 extern USART_InitStruct UsartConfigurationSet;
 // extern I2C_InitTypeDef I2cConfigurationSet;
-
+//------------managers & handlers----------
 extern USART_ManagerStruct usart1Manager;
-// extern DMA_HandleTypeDef dma2Manager_stream2_usart1_rx;
-extern DMA_HandleTypeDef dma2Manager_stream0_memtomem;
+extern DMA_HandleTypeDef dma2Manager_stream2_usart1_rx;
+// extern DMA_HandleTypeDef dma2Manager_stream0_memtomem;
+
 /* USER CODE END EV */
 
 /* Private functions ------------------------------------------------------------*/
@@ -62,7 +65,8 @@ int main(void)
 	USART_Init(&usart1Manager);
 	// I2C_Init(1, &I2cConfigurationSet);
 	// DMA_Init(&dma2Manager_stream2_usart1_rx);
-	DMA_Init(&dma2Manager_stream0_memtomem);
+	// DMA_Init(&dma2Manager_stream0_memtomem);
+	DMA_Init(&dma2Manager_stream2_usart1_rx);
 
 
 
@@ -79,6 +83,7 @@ int main(void)
 ///
 
 //UART interrupts testing 
+#ifdef UART_interrupts_testing
 	// uint8 data;
 	uint8 usart_recieve_buffer[5] = {'0', '0', '0', '0', '0'};
 	delay_ms(100);
@@ -93,35 +98,32 @@ int main(void)
 			
 		}
 	}
+#endif
 
 
 
 
 	/* USART1 interrupt Init */
-	// __NVIC_SetPriority(USART1_IRQn, 0, 0);
-	// __NVIC_EnableIRQ(USART1_IRQn);
+	__NVIC_SetPriority(USART1_IRQn, 0);
+	__NVIC_EnableIRQ(USART1_IRQn);
 
-	// __NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
-	// __NVIC_EnableIRQ(DMA2_Stream2_IRQn);
-	// /* DMA2_Stream7_IRQn interrupt configuration */
-	// __NVIC_SetPriority(DMA2_Stream7_IRQn, 0, 0);
+	__NVIC_SetPriority(DMA2_Stream2_IRQn, 0);
+	__NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+	/* DMA2_Stream7_IRQn interrupt configuration */
+	// __NVIC_SetPriority(DMA2_Stream7_IRQn, 0);
 	// __NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 
 
-	// volatile uint8 srcVariable = 5;
-	// volatile uint8 src2Variable = 2;
-	// volatile uint8 dstVariable = 0;
-	// // uint32 distinationAddress = 0x0800C000;
+	volatile uint8 variable1 = 'f';
+	volatile uint8 variable2 = 'b';
+
 	
 	// DMA_start(&dma2Manager_stream0_memtomem, (uint32)&srcVariable, (uint32)&dstVariable, 1);
-	// if( DMA_PollForTransfer(&dma2Manager_stream0_memtomem, HAL_DMA_FULL_TRANSFER)    == MCAL_ERROR)
-	// {	
-	// 	/*error*/
-	// 	while(1);
-	// }
+	HAL_UART_Receive_DMA(&usart1Manager, &variable1, 1);
 
 
-	// if (src2Variable == dstVariable){
+
+	// if (variable1 == variable2){
 	// 	// success
 	// 	while(1){
 
@@ -145,7 +147,12 @@ int main(void)
 
 	// while1
 	while (1){
+		if (variable1 == variable2){
+			// success
+			while(1){
 
+			}
+		}
 	}
 
 

@@ -5,6 +5,9 @@
 #include "usart_regs.h"//for dev phase only
 // #include "usart_cfg.h"
 #include "std_types.h"
+#include "dma.h"
+
+extern DMA_HandleTypeDef dma2Manager_stream2_usart1_rx;
 
 //USART
 // this must be extern in the main or in the .h file
@@ -26,7 +29,9 @@ USART_ManagerStruct usart1Manager={
 	.RxXferCount= 0,
 	.txState		= USART_STATE_RESET,
 	.rxState		= USART_STATE_RESET,
-	.ErrorCode	= USART_ERROR_NONE
+	.ErrorCode	= USART_ERROR_NONE,
+	.hdmarx = &dma2Manager_stream2_usart1_rx,
+	.hdmatx = NULL_PTR
 };
 
 // usart1Manager.ErrorCode = 0;
