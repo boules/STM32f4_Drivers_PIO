@@ -563,7 +563,7 @@ void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 
 MCALStatus_t HAL_UART_Transmit_DMA(USART_ManagerStruct *huart, const uint8_t *pData, uint16_t Size)
 {
-	const uint32_t *tmp;
+	// const uint32_t *tmp;
 
 	/* Check that a Tx process is not already ongoing */
 	if (huart->txState != USART_STATE_READY)
@@ -596,7 +596,7 @@ MCALStatus_t HAL_UART_Transmit_DMA(USART_ManagerStruct *huart, const uint8_t *pD
 	// huart->hdmatx->XferAbortCallback = NULL;
 
 	/* Enable the UART transmit DMA stream */
-	DMA_Start_IT(huart->hdmatx, pData, (uint32_t)&huart->moduleBase->DR, Size);
+	DMA_Start_IT(huart->hdmatx, (uint32)pData, (uint32_t)&huart->moduleBase->DR, Size);
 
 	/* Clear the TC flag in the USART SR register by writing 0 to it */
 	(huart)->moduleBase->SR = ~(UART_FLAG_TC);
@@ -643,7 +643,7 @@ MCALStatus_t HAL_UART_Receive_DMA(USART_ManagerStruct *huart, uint8_t *pData, ui
 	// huart->hdmarx->XferAbortCallback = NULL;
 
 	/* Enable the DMA stream */
-	DMA_Start_IT(huart->hdmarx, (uint32_t)&huart->moduleBase->DR, pData, Size);
+	DMA_Start_IT(huart->hdmarx, (uint32_t)&huart->moduleBase->DR, (uint32)pData, Size);
 
 	/* Clear the usart Overrun flag just before enabling the DMA Rx request: can be mandatory for the second transfer */
 	// Clear USART Overrun error
