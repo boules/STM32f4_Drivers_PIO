@@ -692,3 +692,23 @@ void HAL_DMA_IRQHandler(DMA_HandleTypeDef *hdma)
 		// }
 	}
 }
+
+MCALStatus_t HAL_DMA_Abort_IT(DMA_HandleTypeDef *hdma)
+{
+  if(hdma->State != HAL_DMA_STATE_BUSY)
+  {
+    hdma->ErrorCode = HAL_DMA_ERROR_NO_XFER;
+    return MCAL_ERROR;
+  }
+  else
+  {
+    /* Set Abort State  */
+    hdma->State = HAL_DMA_STATE_ABORT;
+    
+    /* Disable the stream */
+    // __HAL_DMA_DISABLE(hdma);
+	(hdma->Instance->CR &= ~DMA_SxCR_EN);
+  }
+
+  return HAL_OK;
+}
