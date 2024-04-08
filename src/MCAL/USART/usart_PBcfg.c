@@ -12,8 +12,8 @@ extern DMA_HandleTypeDef dma2Manager_stream2_usart1_rx;
 //USART
 // this must be extern in the main or in the .h file
 USART_ManagerStruct usart1Manager={
-	.moduleBase	= (USART_RegStruct*)USART1_BASE,
-	.init		= {
+	.Instance	= (USART_RegStruct*)USART1_BASE,
+	.Init		= {
 		.BaudRate = 9600,
 		.WordLength = USART_WORDLENGTH_8B,
 		.StopBits = USART_STOPBITS_1,

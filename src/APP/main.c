@@ -61,7 +61,7 @@ int main(void)
 {
 
 /* Initialize all configured peripherals */
-	Port_Init(Port_pinConfigurationSet);
+	Port_Init(&Port_pinConfigurationSet);
 	USART_Init(&usart1Manager);
 	// I2C_Init(1, &I2cConfigurationSet);
 	// DMA_Init(&dma2Manager_stream2_usart1_rx);
@@ -82,25 +82,6 @@ int main(void)
 	LCD_displayStringRowColumn(1, 0, "Hoppa FADY");
 ///
 
-//UART interrupts testing 
-#ifdef UART_interrupts_testing
-	// uint8 data;
-	uint8 usart_recieve_buffer[5] = {'0', '0', '0', '0', '0'};
-	delay_ms(100);
-	if (USART_startReceive_IT(&usart1Manager, usart_recieve_buffer, 5) != MCAL_OK){
-		while(1){}
-	}
-	// USART_TransmitData_IT(USART_ManagerStruct *usartxManger)
-	delay_ms(1000);
-	if (USART_startTransmit_IT(&usart1Manager, usart_recieve_buffer, 5) != MCAL_OK){
-		while (1)
-		{
-			
-		}
-	}
-#endif
-
-
 
 
 	/* USART1 interrupt Init */
@@ -114,43 +95,26 @@ int main(void)
 	// __NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 
 
-	volatile uint8 variable1 = 'f';
-	volatile uint8 variable2 = 'b';
+	volatile uint8 variable1[2] = {'b', 'o'};
+	volatile uint8 variable2[2] = {'f', 'a'};
 
 	
 	// DMA_start(&dma2Manager_stream0_memtomem, (uint32)&srcVariable, (uint32)&dstVariable, 1);
-	HAL_UART_Receive_DMA(&usart1Manager, &variable1, 1);
-
-
-
-	// if (variable1 == variable2){
-	// 	// success
-	// 	while(1){
-
-	// 	}
-
-	// }else {
-	// 	// fail
-	// 	while(1){
-
-	// 	}
-	// }
-
-
-
-
-
-
-
+	USART_Receive_DMA(&usart1Manager, &variable1, 2);
 
 
 
 	// while1
 	while (1){
-		if (variable1 == variable2){
-			// success
+		if (variable1[0] == variable2[0]){
+			// success 0
 			while(1){
+					if (variable1[1] == variable2[1]){
+						// success 1
+						while(1){
 
+						}
+					}
 			}
 		}
 	}
@@ -210,3 +174,22 @@ int main(void)
 	// }
 	 /* 
 	*/
+
+
+//UART interrupts testing 
+#ifdef UART_interrupts_testing
+	// uint8 data;
+	uint8 usart_recieve_buffer[5] = {'0', '0', '0', '0', '0'};
+	delay_ms(100);
+	if (USART_startReceive_IT(&usart1Manager, usart_recieve_buffer, 5) != MCAL_OK){
+		while(1){}
+	}
+	// USART_TransmitData_IT(USART_ManagerStruct *usartxManger)
+	delay_ms(1000);
+	if (USART_startTransmit_IT(&usart1Manager, usart_recieve_buffer, 5) != MCAL_OK){
+		while (1)
+		{
+			
+		}
+	}
+#endif

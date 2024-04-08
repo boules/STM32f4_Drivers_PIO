@@ -57,8 +57,8 @@ typedef struct
 
 
 
-
-
+// AND (&) with the instance
+#define GET_BASE_ADDRESS_MASK	((uint32_t)(~0x3FFU))
 
 
 

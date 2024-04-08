@@ -109,8 +109,6 @@ typedef enum
 ////////////////////////////////////
 typedef struct __DMA_HandleTypeDef
 {
-	DMA_RegStruct				*moduleBase;
-
 	DMA_Stream_TypeDef			*Instance;                                                        /*!< Register base address                  */
 
 	DMA_InitTypeDef            Init;                                                             /*!< DMA communication parameters           */ 
@@ -121,17 +119,17 @@ typedef struct __DMA_HandleTypeDef
 
 	void                       *Parent;                                                          /*!< Parent object state                    */ 
 
-//   void                       (* XferCpltCallback)( struct __DMA_HandleTypeDef * hdma);         /*!< DMA transfer complete callback         */
+//   void                       (* XferCpltCallback)( struct __DMA_HandleTypeDef * streamManager);         /*!< DMA transfer complete callback         */
 
-//   void                       (* XferHalfCpltCallback)( struct __DMA_HandleTypeDef * hdma);     /*!< DMA Half transfer complete callback    */
+//   void                       (* XferHalfCpltCallback)( struct __DMA_HandleTypeDef * streamManager);     /*!< DMA Half transfer complete callback    */
 
-//   void                       (* XferM1CpltCallback)( struct __DMA_HandleTypeDef * hdma);       /*!< DMA transfer complete Memory1 callback */
+//   void                       (* XferM1CpltCallback)( struct __DMA_HandleTypeDef * streamManager);       /*!< DMA transfer complete Memory1 callback */
   
-//   void                       (* XferM1HalfCpltCallback)( struct __DMA_HandleTypeDef * hdma);   /*!< DMA transfer Half complete Memory1 callback */
+//   void                       (* XferM1HalfCpltCallback)( struct __DMA_HandleTypeDef * streamManager);   /*!< DMA transfer Half complete Memory1 callback */
   
-//   void                       (* XferErrorCallback)( struct __DMA_HandleTypeDef * hdma);        /*!< DMA transfer error callback            */
+//   void                       (* XferErrorCallback)( struct __DMA_HandleTypeDef * streamManager);        /*!< DMA transfer error callback            */
   
-//   void                       (* XferAbortCallback)( struct __DMA_HandleTypeDef * hdma);        /*!< DMA transfer Abort callback            */  
+//   void                       (* XferAbortCallback)( struct __DMA_HandleTypeDef * streamManager);        /*!< DMA transfer Abort callback            */  
 
   __IO uint32_t              ErrorCode;                                                        /*!< DMA Error code                          */
   
@@ -453,11 +451,12 @@ typedef enum
 
 
 
-void DMA_Init(DMA_HandleTypeDef* dmaManager);
-void DMA_start(DMA_HandleTypeDef* dmaManager, uint32 SrcAddress, uint32 DstAddress, uint32 DataLength);
-void DMA_Start_IT(DMA_HandleTypeDef* dmaManager, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength);
-MCALStatus_t DMA_PollForTransfer(DMA_HandleTypeDef *hdma, HAL_DMA_LevelCompleteTypeDef CompleteLevel);
-void HAL_DMA_IRQHandler(DMA_HandleTypeDef *hdma);
-MCALStatus_t HAL_DMA_Abort_IT(DMA_HandleTypeDef *hdma);
+void DMA_Init(DMA_HandleTypeDef* streamManager);
+void DMA_start(DMA_HandleTypeDef* streamManager, uint32 SrcAddress, uint32 DstAddress, uint32 DataLength);
+void DMA_Start_IT(DMA_HandleTypeDef* streamManager, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength);
+MCALStatus_t DMA_PollForTransfer(DMA_HandleTypeDef *streamManager, HAL_DMA_LevelCompleteTypeDef CompleteLevel);
+MCALStatus_t DMA_Abort_IT(DMA_HandleTypeDef *streamManager);
+
+void MCAL_DMA_IRQHandler(DMA_HandleTypeDef *streamManager);
 
 #endif /*DMA_H*/

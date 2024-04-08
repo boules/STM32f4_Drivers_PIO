@@ -10,14 +10,6 @@
 
 
 
-
-
-
-enum {
-	USART1, USART2, USART6
-};
-
-
 #define USART_WORDLENGTH_8B                  0x00000000U
 #define USART_WORDLENGTH_9B                  ((uint32_t)USART_CR1_M)					// 0x00001000
 
@@ -35,8 +27,6 @@ enum {
 
 
 
-
-
 #define USART_ERROR_NONE              0x00000000U   		/*!< No error            */
 #define USART_ERROR_PE                USART_SR_PE_Msk	/*0x00000001U*/   /*!< Parity error        */
 #define USART_ERROR_FE                USART_SR_FE_Msk	/*0x00000002U*/   /*!< Frame error         */
@@ -47,8 +37,28 @@ enum {
 
 
 
+typedef enum USART_STATE_t
+{
+  USART_STATE_RESET             = 0x00U,    /*!< Peripheral is not yet Initialized
+                                                   Value is allowed for gState and RxState */
+  USART_STATE_READY             = 0x20U,    /*!< Peripheral Initialized and ready for use
+                                                   Value is allowed for gState and RxState */
+  USART_STATE_BUSY              = 0x24U,    /*!< an internal process is ongoing
+                                                   Value is allowed for gState only */
+  USART_STATE_BUSY_TX           = 0x21U,    /*!< Data Transmission process is ongoing
+                                                   Value is allowed for gState only */
+  USART_STATE_BUSY_RX           = 0x22U,    /*!< Data Reception process is ongoing
+                                                   Value is allowed for RxState only */
+  USART_STATE_BUSY_TX_RX        = 0x23U,    /*!< Data Transmission and Reception process is ongoing
+                                                   Not to be used for neither gState nor RxState.
+                                                   Value is result of combination (Or) between gState and RxState values */
+  USART_STATE_TIMEOUT           = 0xA0U,    /*!< Timeout state
+                                                   Value is allowed for gState only */
+  USART_STATE_ERROR             = 0xE0U     /*!< Error
+                                                   Value is allowed for gState only */
+} USART_STATE_t;
 
-typedef struct
+typedef struct USART_InitStruct
 {
   uint32 BaudRate;                  /*!< This member configures the UART communication baud rate.
                                            The baud rate is computed using the following formula:
@@ -76,36 +86,11 @@ typedef struct
 } USART_InitStruct;
 
 
-
-
-
-typedef enum
-{
-  USART_STATE_RESET             = 0x00U,    /*!< Peripheral is not yet Initialized
-                                                   Value is allowed for gState and RxState */
-  USART_STATE_READY             = 0x20U,    /*!< Peripheral Initialized and ready for use
-                                                   Value is allowed for gState and RxState */
-  USART_STATE_BUSY              = 0x24U,    /*!< an internal process is ongoing
-                                                   Value is allowed for gState only */
-  USART_STATE_BUSY_TX           = 0x21U,    /*!< Data Transmission process is ongoing
-                                                   Value is allowed for gState only */
-  USART_STATE_BUSY_RX           = 0x22U,    /*!< Data Reception process is ongoing
-                                                   Value is allowed for RxState only */
-  USART_STATE_BUSY_TX_RX        = 0x23U,    /*!< Data Transmission and Reception process is ongoing
-                                                   Not to be used for neither gState nor RxState.
-                                                   Value is result of combination (Or) between gState and RxState values */
-  USART_STATE_TIMEOUT           = 0xA0U,    /*!< Timeout state
-                                                   Value is allowed for gState only */
-  USART_STATE_ERROR             = 0xE0U     /*!< Error
-                                                   Value is allowed for gState only */
-} USART_STATE_t;
-
-
 typedef struct USART_ManagerStruct
 {
-  USART_RegStruct				*moduleBase;        /*!< UART registers base address        */
+  USART_RegStruct				*Instance;        /*!< UART registers base address        */
 
-  USART_InitStruct				init;             /*!< UART communication parameters      */
+  USART_InitStruct				Init;             /*!< UART communication parameters      */
 
   const uint8_t                 *pTxBuffPtr;      /*!< Pointer to UART Tx transfer Buffer */
 
@@ -157,15 +142,19 @@ typedef struct USART_ManagerStruct
 } USART_ManagerStruct;
 
 
+
 void USART_Init(USART_ManagerStruct *usartxManger);
+
 void USART_sendByte_polling(USART_ManagerStruct *usartxManger, const uint8 data);
 uint8 USART_recieveByte_polling(USART_ManagerStruct *usartxManger);
 
 MCALStatus_t USART_startTransmit_IT(USART_ManagerStruct *usartxManger, const uint8 *pData, uint16 Size);
 MCALStatus_t USART_startReceive_IT(USART_ManagerStruct *usartxManger, uint8_t *pData, uint16_t Size);
-void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger);
 
-MCALStatus_t HAL_UART_Receive_DMA(USART_ManagerStruct *huart, uint8_t *pData, uint16_t Size);
+MCALStatus_t USART_Transmit_DMA(USART_ManagerStruct *huart, const uint8_t *pData, uint16_t Size);
+MCALStatus_t USART_Receive_DMA(USART_ManagerStruct *huart, uint8_t *pData, uint16_t Size);
+
+void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger);
 
 
 #endif

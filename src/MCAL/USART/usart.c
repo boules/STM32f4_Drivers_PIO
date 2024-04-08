@@ -16,6 +16,11 @@ basic parameters:
  * USART sends the least significient bit first
  */
 
+/*** Information about USART configuration
+ * USART Instance is the usart base module
+ *! THIS DRIVER HANDLES ONLY THE ASYNCRONOUS MODE
+ */
+
 #include "rcc.h"
 #include "std_types.h"
 #include "usart.h"
@@ -24,15 +29,15 @@ basic parameters:
 #include "nvic.h"
 #include "dma.h"
 
-/*****************************************************************************************/
-/*********************************** USART FUNCTIONS *************************************/
-/*****************************************************************************************/
+/************************************************************************************************************/
+/********************************************** USART FUNCTIONS *********************************************/
+/************************************************************************************************************/
 
-/** USART initialize function ******************************************************************/
+/*---------------------------------------- USART Intialization function -------------------------------------------*/
 void USART_Init(USART_ManagerStruct *usartxManger)
 {
 
-	switch ((uint32)usartxManger->moduleBase)
+	switch ((uint32)usartxManger->Instance)
 	{
 	case USART1_BASE:
 		RCC_Enable(RCC_USART1);
@@ -51,25 +56,25 @@ void USART_Init(USART_ManagerStruct *usartxManger)
 	}
 
 	// disable the usart
-	usartxManger->moduleBase->CR1 &= ~USART_CR1_UE;
+	usartxManger->Instance->CR1 &= ~USART_CR1_UE;
 
 	// Configure stop bits
-	REG_CLEARANDSET_BYMASKS(usartxManger->moduleBase->CR2, USART_CR2_STOP_clrMsk, usartxManger->init.StopBits);
+	REG_CLEARANDSET_BYMASKS(usartxManger->Instance->CR2, USART_CR2_STOP_clrMsk, usartxManger->Init.StopBits);
 
 	// configure Wordlength, parity, TxorRX mode
-	REG_CLEARANDSET_BYMASKS(usartxManger->moduleBase->CR1,
+	REG_CLEARANDSET_BYMASKS(usartxManger->Instance->CR1,
 							((uint32)(USART_CR1_M_clrMsk | USART_CR1_PCE_clrMsk | USART_CR1_PS_clrMsk | USART_CR1_TE_clrMsk | USART_CR1_RE_clrMsk)),
-							((uint32)usartxManger->init.WordLength | usartxManger->init.Parity | usartxManger->init.Mode));
+							((uint32)usartxManger->Init.WordLength | usartxManger->Init.Parity | usartxManger->Init.Mode));
 
 	// configure baudrate
-	usartxManger->moduleBase->BRR = UART_BRR_SAMPLING16(16000000, usartxManger->init.BaudRate);
+	usartxManger->Instance->BRR = UART_BRR_SAMPLING16(16000000, usartxManger->Init.BaudRate);
 
 	// set usart states to ready
 	usartxManger->txState = USART_STATE_READY;
 	usartxManger->rxState = USART_STATE_READY;
 
 	// enable the usart
-	usartxManger->moduleBase->CR1 |= USART_CR1_UE;
+	usartxManger->Instance->CR1 |= USART_CR1_UE;
 
 	// reset the error code
 	usartxManger->ErrorCode = USART_ERROR_NONE;
@@ -77,7 +82,42 @@ void USART_Init(USART_ManagerStruct *usartxManger)
 	return;
 }
 
-/** USART functions that uses the interrupts ***************************************************/
+
+/*------------------------------------------ USART Polling functions ----------------------------------------------*/
+void USART_sendByte_polling(USART_ManagerStruct *usartxManger, const uint8 data)
+{
+	/* 1. wait til the TDR is empty and ready to take-in data (wait for the TXE flag).
+	 * 2. then write the data in the Data Register.
+	 */
+
+	// stop while the TX line is full  (wait while the TXE flag is clear)
+	while (BIT_IS_CLEAR(usartxManger->Instance->SR, USART_SR_TXE_Pos))
+	{
+	}
+
+	// writing the data in the data Register DR
+	usartxManger->Instance->DR = data;
+
+	// not nessecary    only nessecaery after the last byte sent by the uart to  indiacte that all is complete and its okay to disable the usart after it
+	// while (!((USART_basePtr->SR)&(USART_SR_TC_Pos)))
+}
+uint8 USART_recieveByte_polling(USART_ManagerStruct *usartxManger)
+{
+	/* 1. wait for the module to detect a byte on the line. that will raise a flag (RXNE) RX Not Empty. wait for the flag.
+	 * 2. then read and return the recieved data.
+	 */
+
+	// stop while the RX line is empty  (wait while the RXNE flag is clear)
+	while (BIT_IS_CLEAR(usartxManger->Instance->SR, USART_SR_RXNE_Pos))
+	{
+	}
+
+	// read and return the recieved data
+	return usartxManger->Instance->DR;
+}
+
+
+/*-------------------------------------------- USART Interrupts functions --------------------------------------------*/
 // Transmit functions by interrupts
 MCALStatus_t USART_startTransmit_IT(USART_ManagerStruct *usartxManger, const uint8 *pData, uint16 Size)
 {
@@ -102,9 +142,8 @@ MCALStatus_t USART_startTransmit_IT(USART_ManagerStruct *usartxManger, const uin
 	usartxManger->txState = USART_STATE_BUSY_TX;
 
 	// enable interrupt TXE when the tx is empty and ready to write the new data
-	usartxManger->moduleBase->CR1 |= USART_CR1_TXEIE;
+	usartxManger->Instance->CR1 |= USART_CR1_TXEIE;
 
-	Enable_Interrupts();
 	__NVIC_EnableIRQ(USART1_IRQn);
 
 	return MCAL_OK;
@@ -116,24 +155,24 @@ static MCALStatus_t USART_dataTransmit_IT(USART_ManagerStruct *usartxManger)
 	/* Check that a Tx process is ongoing */
 	if (usartxManger->txState == USART_STATE_BUSY_TX)
 	{
-		if ((usartxManger->init.WordLength == USART_WORDLENGTH_9B) && (usartxManger->init.Parity == USART_PARITY_NONE))
+		if ((usartxManger->Init.WordLength == USART_WORDLENGTH_9B) && (usartxManger->Init.Parity == USART_PARITY_NONE))
 		{
 			tmp = (const uint16_t *)usartxManger->pTxBuffPtr;
-			usartxManger->moduleBase->DR = (uint16_t)(*tmp & (uint16_t)0x01FF);
+			usartxManger->Instance->DR = (uint16_t)(*tmp & (uint16_t)0x01FF);
 			usartxManger->pTxBuffPtr += 2U;
 		}
 		else
 		{
-			usartxManger->moduleBase->DR = (uint8_t)(*usartxManger->pTxBuffPtr++ & (uint8_t)0x00FF);
+			usartxManger->Instance->DR = (uint8_t)(*usartxManger->pTxBuffPtr++ & (uint8_t)0x00FF);
 		}
 
 		if (--(usartxManger->TxXferCount) == 0U)
 		{
 			/* Disable the UART Transmit Data Register Empty Interrupt */
-			usartxManger->moduleBase->CR1 &= ~USART_CR1_TXEIE_clrMsk;
+			usartxManger->Instance->CR1 &= ~USART_CR1_TXEIE_clrMsk;
 
 			/* Enable the UART Transmit Complete Interrupt */
-			usartxManger->moduleBase->CR1 |= USART_CR1_TCIE;
+			usartxManger->Instance->CR1 |= USART_CR1_TCIE;
 		}
 		return MCAL_OK;
 	}
@@ -141,6 +180,16 @@ static MCALStatus_t USART_dataTransmit_IT(USART_ManagerStruct *usartxManger)
 	{
 		return MCAL_BUSY;
 	}
+}
+static void USART_EndTxTransfer(USART_ManagerStruct *usartxManger)
+{
+	/* Disable TXEIE and TCIE interrupts */
+	ATOMIC_CLEAR_BIT(usartxManger->Instance->CR1, (USART_CR1_TXEIE | USART_CR1_TCIE));
+
+	/* At end of Tx process, restore huart->gState to Ready */
+	usartxManger->txState = USART_STATE_READY;
+
+	/*maybe you can add a callbackfunction and call it*/
 }
 
 // Recieve functions by interrupts
@@ -168,18 +217,18 @@ MCALStatus_t USART_startReceive_IT(USART_ManagerStruct *usartxManger, uint8_t *p
 	usartxManger->rxState = USART_STATE_BUSY_RX;
 
 	// 111111111111111 enable ERROR interrupts
-	if (usartxManger->init.Parity != USART_PARITY_NONE)
+	if (usartxManger->Init.Parity != USART_PARITY_NONE)
 	{
 		/* Enable the UART Parity Error Interrupt */
-		usartxManger->moduleBase->CR1 |= (USART_CR1_PEIE_Msk);
+		usartxManger->Instance->CR1 |= (USART_CR1_PEIE_Msk);
 	}
 
 	/* Enable the UART Error Interrupt: (Frame error, noise error, overrun error) */
-	usartxManger->moduleBase->CR1 |= (USART_CR3_EIE_Msk);
+	usartxManger->Instance->CR1 |= (USART_CR3_EIE_Msk);
 	// 111111111111111
 
 	/* Enable the UART Data Register not empty Interrupt */
-	usartxManger->moduleBase->CR1 |= (USART_CR1_RXNEIE_Msk);
+	usartxManger->Instance->CR1 |= (USART_CR1_RXNEIE_Msk);
 
 	/* enable usart global interrupt*/
 	__NVIC_EnableIRQ(USART1_IRQn); // usart1 you need to be be hadle with all usarts
@@ -194,11 +243,11 @@ static MCALStatus_t USART_dataRecieve_IT(USART_ManagerStruct *usartxManger)
 	/* Check that a Rx process is ongoing */
 	if (usartxManger->rxState == USART_STATE_BUSY_RX)
 	{
-		if ((usartxManger->init.WordLength == USART_WORDLENGTH_9B) && (usartxManger->init.Parity == USART_PARITY_NONE))
+		if ((usartxManger->Init.WordLength == USART_WORDLENGTH_9B) && (usartxManger->Init.Parity == USART_PARITY_NONE))
 		{
 			pdata8bits = NULL;
 			pdata16bits = (uint16_t *)usartxManger->pRxBuffPtr;
-			*pdata16bits = (uint16_t)(usartxManger->moduleBase->DR & (uint16_t)0x01FF);
+			*pdata16bits = (uint16_t)(usartxManger->Instance->DR & (uint16_t)0x01FF);
 			usartxManger->pRxBuffPtr += 2U;
 		}
 		else
@@ -206,13 +255,13 @@ static MCALStatus_t USART_dataRecieve_IT(USART_ManagerStruct *usartxManger)
 			pdata8bits = (uint8_t *)usartxManger->pRxBuffPtr;
 			pdata16bits = NULL;
 
-			if ((usartxManger->init.WordLength == USART_WORDLENGTH_9B) || ((usartxManger->init.WordLength == USART_WORDLENGTH_8B) && (usartxManger->init.Parity == USART_PARITY_NONE)))
+			if ((usartxManger->Init.WordLength == USART_WORDLENGTH_9B) || ((usartxManger->Init.WordLength == USART_WORDLENGTH_8B) && (usartxManger->Init.Parity == USART_PARITY_NONE)))
 			{
-				*pdata8bits = (uint8_t)(usartxManger->moduleBase->DR & (uint8_t)0x00FF);
+				*pdata8bits = (uint8_t)(usartxManger->Instance->DR & (uint8_t)0x00FF);
 			}
 			else
 			{
-				*pdata8bits = (uint8_t)(usartxManger->moduleBase->DR & (uint8_t)0x007F);
+				*pdata8bits = (uint8_t)(usartxManger->Instance->DR & (uint8_t)0x007F);
 			}
 			usartxManger->pRxBuffPtr += 1U;
 		}
@@ -220,14 +269,14 @@ static MCALStatus_t USART_dataRecieve_IT(USART_ManagerStruct *usartxManger)
 		if (--usartxManger->RxXferCount == 0U)
 		{
 			/* Disable the UART Data Register not empty Interrupt */
-			usartxManger->moduleBase->CR1 &= ~(USART_CR1_RXNEIE_clrMsk);
+			usartxManger->Instance->CR1 &= ~(USART_CR1_RXNEIE_clrMsk);
 
 			// 11111111111111111 Disable Error Interrupts
 			/* Disable the UART Parity Error Interrupt */
-			usartxManger->moduleBase->CR1 &= ~(USART_CR1_PEIE_clrMsk);
+			usartxManger->Instance->CR1 &= ~(USART_CR1_PEIE_clrMsk);
 
 			/* Disable the UART Error Interrupt: (Frame error, noise error, overrun error) */
-			usartxManger->moduleBase->CR1 &= ~(USART_CR3_EIE_clrMsk);
+			usartxManger->Instance->CR1 &= ~(USART_CR3_EIE_clrMsk);
 			// 11111111111111111
 
 			/* Rx process is completed, restore usartxManger->RxState to Ready */
@@ -244,7 +293,7 @@ static MCALStatus_t USART_dataRecieve_IT(USART_ManagerStruct *usartxManger)
 			// 	usartxManger->ReceptionType = HAL_UART_RECEPTION_STANDARD;
 
 			// 	/* Disable IDLE interrupt */
-			// 	ATOMIC_CLEAR_BIT(usartxManger->moduleBase->CR1, USART_CR1_IDLEIE);
+			// 	ATOMIC_CLEAR_BIT(usartxManger->Instance->CR1, USART_CR1_IDLEIE);
 
 			// 	/* Check if IDLE flag is set */
 			// 	if (__HAL_UART_GET_FLAG(usartxManger, UART_FLAG_IDLE))
@@ -265,26 +314,15 @@ static MCALStatus_t USART_dataRecieve_IT(USART_ManagerStruct *usartxManger)
 		return MCAL_BUSY;
 	}
 }
-
-static void UART_EndTxTransfer(USART_ManagerStruct *usartxManger)
-{
-	/* Disable TXEIE and TCIE interrupts */
-	ATOMIC_CLEAR_BIT(usartxManger->moduleBase->CR1, (USART_CR1_TXEIE | USART_CR1_TCIE));
-
-	/* At end of Tx process, restore huart->gState to Ready */
-	usartxManger->txState = USART_STATE_READY;
-
-	/*maybe you can add a callbackfunction and call it*/
-}
-static void UART_EndRxTransfer(USART_ManagerStruct *usartxManger)
+static void USART_EndRxTransfer(USART_ManagerStruct *usartxManger)
 {
 	/* Disable RXNE, PE and ERR (Frame error, noise error, overrun error) interrupts */
-	//   ATOMIC_CLEAR_BIT(usartxManger->moduleBase->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
-	//   ATOMIC_CLEAR_BIT(usartxManger->moduleBase->CR3, USART_CR3_EIE);
+	//   ATOMIC_CLEAR_BIT(usartxManger->Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
+	//   ATOMIC_CLEAR_BIT(usartxManger->Instance->CR3, USART_CR3_EIE);
 
 	Disable_Interrupts();
-	usartxManger->moduleBase->CR1 &= ~(USART_CR1_RXNEIE_clrMsk | USART_CR1_PEIE_clrMsk);
-	usartxManger->moduleBase->CR3 &= ~(USART_CR3_EIE);
+	usartxManger->Instance->CR1 &= ~(USART_CR1_RXNEIE_clrMsk | USART_CR1_PEIE_clrMsk);
+	usartxManger->Instance->CR3 &= ~(USART_CR3_EIE);
 	Enable_Interrupts();
 
 	/* In case of reception waiting for IDLE event, disable also the IDLE IE interrupt source */
@@ -300,39 +338,130 @@ static void UART_EndRxTransfer(USART_ManagerStruct *usartxManger)
 	//   usartxManger->ReceptionType = HAL_UART_RECEPTION_STANDARD;
 }
 
-/** USART functions that uses polling ***********************************************************/
-void USART_sendByte_polling(USART_ManagerStruct *usartxManger, const uint8 data)
-{
-	/* 1. wait til the TDR is empty and ready to take-in data (wait for the TXE flag).
-	 * 2. then write the data in the Data Register.
-	 */
 
-	// stop while the TX line is full  (wait while the TXE flag is clear)
-	while (BIT_IS_CLEAR(usartxManger->moduleBase->SR, USART_SR_TXE_Pos))
+
+
+
+/***************************************************************************************************************************/
+/**************************************************** USART using DMA ******************************************************/
+/***************************************************************************************************************************/
+
+MCALStatus_t USART_Transmit_DMA(USART_ManagerStruct *huart, const uint8_t *pData, uint16_t Size)
+{
+	// const uint32_t *tmp;
+
+	/* Check that a Tx process is not already ongoing */
+	if (huart->txState != USART_STATE_READY)
 	{
+		return MCAL_BUSY;
 	}
 
-	// writing the data in the data Register DR
-	usartxManger->moduleBase->DR = data;
-
-	// not nessecary    only nessecaery after the last byte sent by the uart to  indiacte that all is complete and its okay to disable the usart after it
-	// while (!((USART_basePtr->SR)&(USART_SR_TC_Pos)))
-}
-uint8 USART_recieveByte_polling(USART_ManagerStruct *usartxManger)
-{
-	/* 1. wait for the module to detect a byte on the line. that will raise a flag (RXNE) RX Not Empty. wait for the flag.
-	 * 2. then read and return the recieved data.
-	 */
-
-	// stop while the RX line is empty  (wait while the RXNE flag is clear)
-	while (BIT_IS_CLEAR(usartxManger->moduleBase->SR, USART_SR_RXNE_Pos))
+	if ((pData == NULL) || (Size == 0U))
 	{
+		return MCAL_ERROR;
 	}
 
-	// read and return the recieved data
-	return usartxManger->moduleBase->DR;
+	huart->pTxBuffPtr = pData;
+	huart->TxXferSize = Size;
+	huart->TxXferCount = Size;
+
+	huart->ErrorCode = USART_ERROR_NONE;
+	huart->txState = USART_STATE_BUSY_TX;
+
+	// /* Set the UART DMA transfer complete callback */
+	// huart->hdmatx->XferCpltCallback = UART_DMATransmitCplt;
+
+	// /* Set the UART DMA Half transfer complete callback */
+	// huart->hdmatx->XferHalfCpltCallback = UART_DMATxHalfCplt;
+
+	// /* Set the DMA error callback */
+	// huart->hdmatx->XferErrorCallback = UART_DMAError;
+
+	// /* Set the DMA abort callback */
+	// huart->hdmatx->XferAbortCallback = NULL;
+
+	/* Enable the UART transmit DMA stream */
+	DMA_Start_IT(huart->hdmatx, (uint32)pData, (uint32_t)&huart->Instance->DR, Size);
+
+	/* Clear the TC flag in the USART SR register by writing 0 to it */
+	(huart)->Instance->SR = ~(UART_FLAG_TC);
+
+	/* Enable the DMA transfer for transmit request by setting the DMAT bit
+		in the UART CR3 register */
+	ATOMIC_SET_BIT(huart->Instance->CR3, USART_CR3_DMAT);
+
+	return MCAL_OK;
 }
 
+MCALStatus_t USART_Receive_DMA(USART_ManagerStruct *huart, uint8_t *pData, uint16_t Size)
+{
+	/* Check that a Rx process is not already ongoing */
+	if (huart->rxState != USART_STATE_READY)
+	{
+		return MCAL_BUSY;
+	}
+	if ((pData == NULL) || (Size == 0U))
+	{
+		return MCAL_ERROR;
+	}
+
+	/* Set Reception type to Standard reception */
+	// huart->ReceptionType = HAL_UART_RECEPTION_STANDARD;
+
+	huart->pRxBuffPtr = pData;
+	huart->RxXferSize = Size;
+
+	huart->ErrorCode = USART_ERROR_NONE;
+	huart->rxState = USART_STATE_BUSY_RX;
+
+	/*<! mda call back functions >*/
+	// /* Set the UART DMA transfer complete callback */
+	// huart->hdmarx->XferCpltCallback = UART_DMAReceiveCplt;
+
+	// /* Set the UART DMA Half transfer complete callback */
+	// huart->hdmarx->XferHalfCpltCallback = UART_DMARxHalfCplt;
+
+	// /* Set the DMA error callback */
+	// huart->hdmarx->XferErrorCallback = UART_DMAError;
+
+	// /* Set the DMA abort callback */
+	// huart->hdmarx->XferAbortCallback = NULL;
+
+	/* Enable the DMA stream */
+	DMA_Start_IT(huart->hdmarx, (uint32_t)&huart->Instance->DR, (uint32)pData, Size);
+
+	/* Clear the usart Overrun flag just before enabling the DMA Rx request: can be mandatory for the second transfer */
+	// Clear USART Overrun error
+	{
+		__IO uint32_t tmpreg = 0x00U;
+		tmpreg = huart->Instance->SR;
+		tmpreg = huart->Instance->DR;
+		(void)tmpreg;
+	}
+
+	if (huart->Init.Parity != USART_PARITY_NONE)
+	{
+		/* Enable the UART Parity Error Interrupt */
+		ATOMIC_SET_BIT(huart->Instance->CR1, USART_CR1_PEIE);
+	}
+
+	/* Enable the UART Error Interrupt: (Frame error, noise error, overrun error) */
+	ATOMIC_SET_BIT(huart->Instance->CR3, USART_CR3_EIE);
+
+	/* Enable the DMA transfer for the receiver request by setting the DMAR bit
+	in the UART CR3 register */
+	ATOMIC_SET_BIT(huart->Instance->CR3, USART_CR3_DMAR);
+
+	return MCAL_OK;
+}
+
+
+
+
+
+/*--------------------------------------------------------------------------------------------------------------*/
+/*--------------------------------------- DMA Interrupt Handler Function ---------------------------------------*/
+/*--------------------------------------------------------------------------------------------------------------*/
 /** USART Interrupt Handler Function ************************************************************/
 enum FlagStatus
 {
@@ -341,9 +470,9 @@ enum FlagStatus
 };
 void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 {
-	uint32_t isrflags = (usartxManger->moduleBase->SR);
-	uint32_t cr1its = (usartxManger->moduleBase->CR1);
-	uint32_t cr3its = (usartxManger->moduleBase->CR3);
+	uint32_t isrflags = (usartxManger->Instance->SR);
+	uint32_t cr1its = (usartxManger->Instance->CR1);
+	uint32_t cr3its = (usartxManger->Instance->CR3);
 	uint32_t errorflags = 0x00U;
 	uint32_t dmarequest = 0x00U;
 
@@ -403,18 +532,18 @@ void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 
 			/* If Overrun error occurs, or if any error occurs in DMA mode reception,
 			   consider error as blocking */
-			dmarequest = (usartxManger->moduleBase->CR3 & USART_CR3_DMAR);
+			dmarequest = (usartxManger->Instance->CR3 & USART_CR3_DMAR);
 			if (((usartxManger->ErrorCode & USART_ERROR_ORE) != RESET) || dmarequest)
 			{
 				/* Blocking error : transfer is aborted
 				   Set the UART state ready to be able to start again the process,
 				   Disable Rx Interrupts, and disable Rx DMA request, if ongoing */
-				UART_EndRxTransfer(usartxManger);
+				USART_EndRxTransfer(usartxManger);
 
 				/* Disable the UART DMA Rx request mode if enabled */
 				if (dmarequest)
 				{
-					ATOMIC_CLEAR_BIT(usartxManger->moduleBase->CR3, USART_CR3_DMAR);
+					ATOMIC_CLEAR_BIT(usartxManger->Instance->CR3, USART_CR3_DMAR);
 
 					/* Abort the UART DMA Rx stream */
 					if (usartxManger->hdmarx != NULL)
@@ -422,7 +551,7 @@ void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 						/* Set the UART DMA Abort callback :
 						   will lead to call HAL_UART_ErrorCallback() at end of DMA abort procedure */
 						// usartxManger->hdmarx->XferAbortCallback = UART_DMAAbortOnError;
-						if (HAL_DMA_Abort_IT(usartxManger->hdmarx) != MCAL_OK) // dma abort
+						if (DMA_Abort_IT(usartxManger->hdmarx) != MCAL_OK) // dma abort
 						{
 							/* Call Directly XferAbortCallback function in case of error */
 							// usartxManger->hdmarx->XferAbortCallback(usartxManger->hdmarx);
@@ -459,7 +588,7 @@ void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 	// 	__HAL_UART_CLEAR_IDLEFLAG(usartxManger);
 
 	// 	/* Check if DMA mode is enabled in UART */
-	// 	if (HAL_IS_BIT_SET(usartxManger->moduleBase->CR3, USART_CR3_DMAR))
+	// 	if (HAL_IS_BIT_SET(usartxManger->Instance->CR3, USART_CR3_DMAR))
 	// 	{
 	// 		/* DMA mode enabled */
 	// 		/* Check received length : If all expected data are received, do nothing,
@@ -475,18 +604,18 @@ void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 	// 			if (usartxManger->hdmarx->Init.Mode != DMA_CIRCULAR)
 	// 			{
 	// 				/* Disable PE and ERR (Frame error, noise error, overrun error) interrupts */
-	// 				ATOMIC_CLEAR_BIT(usartxManger->moduleBase->CR1, USART_CR1_PEIE);
-	// 				ATOMIC_CLEAR_BIT(usartxManger->moduleBase->CR3, USART_CR3_EIE);
+	// 				ATOMIC_CLEAR_BIT(usartxManger->Instance->CR1, USART_CR1_PEIE);
+	// 				ATOMIC_CLEAR_BIT(usartxManger->Instance->CR3, USART_CR3_EIE);
 
 	// 				/* Disable the DMA transfer for the receiver request by resetting the DMAR bit
 	// 				   in the UART CR3 register */
-	// 				ATOMIC_CLEAR_BIT(usartxManger->moduleBase->CR3, USART_CR3_DMAR);
+	// 				ATOMIC_CLEAR_BIT(usartxManger->Instance->CR3, USART_CR3_DMAR);
 
 	// 				/* At end of Rx process, restore usartxManger->RxState to Ready */
 	// 				usartxManger->rxState = USART_STATE_READY;
 	// 				usartxManger->ReceptionType = HAL_UART_RECEPTION_STANDARD;
 
-	// 				ATOMIC_CLEAR_BIT(usartxManger->moduleBase->CR1, USART_CR1_IDLEIE);
+	// 				ATOMIC_CLEAR_BIT(usartxManger->Instance->CR1, USART_CR1_IDLEIE);
 
 	// 				/* Last bytes received, so no need as the abort is immediate */
 	// 				(void)HAL_DMA_Abort(usartxManger->hdmarx);
@@ -509,17 +638,17 @@ void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 	// 		{
 	// 			//////////////////////////
 	// 			/* Disable the UART Parity Error Interrupt and RXNE interrupts */
-	// 			ATOMIC_CLEAR_BIT(usartxManger->moduleBase->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
+	// 			ATOMIC_CLEAR_BIT(usartxManger->Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
 
 	// 			/* Disable the UART Error Interrupt: (Frame error, noise error, overrun error) */
-	// 			ATOMIC_CLEAR_BIT(usartxManger->moduleBase->CR3, USART_CR3_EIE);
+	// 			ATOMIC_CLEAR_BIT(usartxManger->Instance->CR3, USART_CR3_EIE);
 	// 			//////////////////////////
 
 	// 			/* Rx process is completed, restore usartxManger->RxState to Ready */
 	// 			usartxManger->rxState = USART_STATE_READY;
 	// 			usartxManger->ReceptionType = HAL_UART_RECEPTION_STANDARD;
 
-	// 			ATOMIC_CLEAR_BIT(usartxManger->moduleBase->CR1, USART_CR1_IDLEIE);
+	// 			ATOMIC_CLEAR_BIT(usartxManger->Instance->CR1, USART_CR1_IDLEIE);
 
 	// 			/* Initialize type of RxEvent that correspond to RxEvent callback execution;
 	// 			   In this case, Rx Event type is Idle Event */
@@ -551,121 +680,8 @@ void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManger)
 	/* UART in mode Transmitter end --------------------------------------------*/
 	if (((isrflags & USART_SR_TC) != RESET) && ((cr1its & USART_CR1_TCIE) != RESET))
 	{
-		UART_EndTxTransfer(usartxManger);
+		USART_EndTxTransfer(usartxManger);
 		return;
 	}
 }
 
-/***********************************************************************************************************************/
-/*********************************************** USART using DMA *******************************************************/
-/***********************************************************************************************************************/
-/***********************************************************************************************************************/
-
-MCALStatus_t HAL_UART_Transmit_DMA(USART_ManagerStruct *huart, const uint8_t *pData, uint16_t Size)
-{
-	// const uint32_t *tmp;
-
-	/* Check that a Tx process is not already ongoing */
-	if (huart->txState != USART_STATE_READY)
-	{
-		return MCAL_BUSY;
-	}
-
-	if ((pData == NULL) || (Size == 0U))
-	{
-		return MCAL_ERROR;
-	}
-
-	huart->pTxBuffPtr = pData;
-	huart->TxXferSize = Size;
-	huart->TxXferCount = Size;
-
-	huart->ErrorCode = USART_ERROR_NONE;
-	huart->txState = USART_STATE_BUSY_TX;
-
-	// /* Set the UART DMA transfer complete callback */
-	// huart->hdmatx->XferCpltCallback = UART_DMATransmitCplt;
-
-	// /* Set the UART DMA Half transfer complete callback */
-	// huart->hdmatx->XferHalfCpltCallback = UART_DMATxHalfCplt;
-
-	// /* Set the DMA error callback */
-	// huart->hdmatx->XferErrorCallback = UART_DMAError;
-
-	// /* Set the DMA abort callback */
-	// huart->hdmatx->XferAbortCallback = NULL;
-
-	/* Enable the UART transmit DMA stream */
-	DMA_Start_IT(huart->hdmatx, (uint32)pData, (uint32_t)&huart->moduleBase->DR, Size);
-
-	/* Clear the TC flag in the USART SR register by writing 0 to it */
-	(huart)->moduleBase->SR = ~(UART_FLAG_TC);
-
-	/* Enable the DMA transfer for transmit request by setting the DMAT bit
-		in the UART CR3 register */
-	ATOMIC_SET_BIT(huart->moduleBase->CR3, USART_CR3_DMAT);
-
-	return MCAL_OK;
-}
-
-MCALStatus_t HAL_UART_Receive_DMA(USART_ManagerStruct *huart, uint8_t *pData, uint16_t Size)
-{
-	/* Check that a Rx process is not already ongoing */
-	if (huart->rxState != USART_STATE_READY)
-	{
-		return MCAL_BUSY;
-	}
-	if ((pData == NULL) || (Size == 0U))
-	{
-		return MCAL_ERROR;
-	}
-
-	/* Set Reception type to Standard reception */
-	// huart->ReceptionType = HAL_UART_RECEPTION_STANDARD;
-
-	huart->pRxBuffPtr = pData;
-	huart->RxXferSize = Size;
-
-	huart->ErrorCode = USART_ERROR_NONE;
-	huart->rxState = USART_STATE_BUSY_RX;
-
-	/*<! mda call back functions >*/
-	// /* Set the UART DMA transfer complete callback */
-	// huart->hdmarx->XferCpltCallback = UART_DMAReceiveCplt;
-
-	// /* Set the UART DMA Half transfer complete callback */
-	// huart->hdmarx->XferHalfCpltCallback = UART_DMARxHalfCplt;
-
-	// /* Set the DMA error callback */
-	// huart->hdmarx->XferErrorCallback = UART_DMAError;
-
-	// /* Set the DMA abort callback */
-	// huart->hdmarx->XferAbortCallback = NULL;
-
-	/* Enable the DMA stream */
-	DMA_Start_IT(huart->hdmarx, (uint32_t)&huart->moduleBase->DR, (uint32)pData, Size);
-
-	/* Clear the usart Overrun flag just before enabling the DMA Rx request: can be mandatory for the second transfer */
-	// Clear USART Overrun error
-	{
-		__IO uint32_t tmpreg = 0x00U;
-		tmpreg = huart->moduleBase->SR;
-		tmpreg = huart->moduleBase->DR;
-		(void)tmpreg;
-	}
-
-	if (huart->init.Parity != USART_PARITY_NONE)
-	{
-		/* Enable the UART Parity Error Interrupt */
-		ATOMIC_SET_BIT(huart->moduleBase->CR1, USART_CR1_PEIE);
-	}
-
-	/* Enable the UART Error Interrupt: (Frame error, noise error, overrun error) */
-	ATOMIC_SET_BIT(huart->moduleBase->CR3, USART_CR3_EIE);
-
-	/* Enable the DMA transfer for the receiver request by setting the DMAR bit
-	in the UART CR3 register */
-	ATOMIC_SET_BIT(huart->moduleBase->CR3, USART_CR3_DMAR);
-
-	return MCAL_OK;
-}
