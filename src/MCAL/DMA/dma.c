@@ -457,6 +457,63 @@ void DMA_Start_IT(DMA_HandleTypeDef *streamManager, uint32_t SrcAddress, uint32_
 
 		/* Enable the Peripheral */
 		streamManager->Instance->CR |= DMA_SxCR_EN;
+
+
+		/* Enable DMA global interrupts */
+		switch((uint32)streamManager->Instance){
+			case DMA1_Stream0:
+				__NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+				break;
+			case DMA1_Stream1:
+				__NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+				break;
+			case DMA1_Stream2:
+				__NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+				break;
+			case DMA1_Stream3:
+				__NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+				break;
+			case DMA1_Stream4:
+				__NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+				break;
+			case DMA1_Stream5:
+				__NVIC_EnableIRQ(DMA1_Stream5_IRQn);
+				break;
+			case DMA1_Stream6:
+				__NVIC_EnableIRQ(DMA1_Stream6_IRQn);
+				break;
+			case DMA1_Stream7:
+				__NVIC_EnableIRQ(DMA1_Stream7_IRQn);
+				break;
+			case DMA2_Stream0:
+				__NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+				break;
+			case DMA2_Stream1:
+				__NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+				break;
+			case DMA2_Stream2:
+				__NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+				break;
+			case DMA2_Stream3:
+				__NVIC_EnableIRQ(DMA2_Stream3_IRQn);
+				break;
+			case DMA2_Stream4:
+				__NVIC_EnableIRQ(DMA2_Stream4_IRQn);
+				break;
+			case DMA2_Stream5:
+				__NVIC_EnableIRQ(DMA2_Stream5_IRQn);
+				break;
+			case DMA2_Stream6:
+				__NVIC_EnableIRQ(DMA2_Stream6_IRQn);
+				break;
+			case DMA2_Stream7:
+				__NVIC_EnableIRQ(DMA2_Stream7_IRQn);
+				break;
+
+		}
+
+		
+
 	}
 	//   else //state not ready
 	//   {
