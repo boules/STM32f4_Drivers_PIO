@@ -144,7 +144,22 @@ MCALStatus_t USART_startTransmit_IT(USART_ManagerStruct *usartxManger, const uin
 	// enable interrupt TXE when the tx is empty and ready to write the new data
 	usartxManger->Instance->CR1 |= USART_CR1_TXEIE;
 
-	__NVIC_EnableIRQ(USART1_IRQn);
+	// enable USART module global interrupt
+	switch((uint32)usartxManger->Instance){
+		case USART1_BASE:
+			__NVIC_EnableIRQ(USART1_IRQn);
+			break;
+		case USART2_BASE:
+			__NVIC_EnableIRQ(USART2_IRQn);
+			break;
+		case USART2_BASE:
+			__NVIC_EnableIRQ(USART2_IRQn);
+			break;
+		default:
+			//WRONG INPUTS
+			return MCAL_ERROR
+			break;
+	}
 
 	return MCAL_OK;
 }
@@ -230,9 +245,25 @@ MCALStatus_t USART_startReceive_IT(USART_ManagerStruct *usartxManger, uint8_t *p
 	/* Enable the UART Data Register not empty Interrupt */
 	usartxManger->Instance->CR1 |= (USART_CR1_RXNEIE_Msk);
 
-	/* enable usart global interrupt*/
-	__NVIC_EnableIRQ(USART1_IRQn); // usart1 you need to be be hadle with all usarts
 
+	/* enable USART module global interrupt */
+	switch((uint32)usartxManger->Instance){
+		case USART1_BASE:
+			__NVIC_EnableIRQ(USART1_IRQn);
+			break;
+		case USART2_BASE:
+			__NVIC_EnableIRQ(USART2_IRQn);
+			break;
+		case USART2_BASE:
+			__NVIC_EnableIRQ(USART2_IRQn);
+			break;
+		default:
+			//WRONG INPUTS
+			return MCAL_ERROR
+			break;
+	}
+	
+	
 	return MCAL_OK;
 }
 static MCALStatus_t USART_dataRecieve_IT(USART_ManagerStruct *usartxManger)

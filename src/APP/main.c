@@ -83,15 +83,8 @@ int main(void)
 ///
 
 
-
-	/* USART1 interrupt Init */
-	__NVIC_SetPriority(USART1_IRQn, 0);
-	__NVIC_EnableIRQ(USART1_IRQn);
-
-	__NVIC_SetPriority(DMA2_Stream2_IRQn, 0);
-	__NVIC_EnableIRQ(DMA2_Stream2_IRQn);
 	/* DMA2_Stream7_IRQn interrupt configuration */
-	// __NVIC_SetPriority(DMA2_Stream7_IRQn, 0);
+	__NVIC_EnableIRQ(DMA2_Stream2_IRQn);
 	// __NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 
 
