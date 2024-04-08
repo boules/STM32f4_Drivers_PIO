@@ -83,10 +83,6 @@ int main(void)
 ///
 
 
-	/* DMA2_Stream7_IRQn interrupt configuration */
-	__NVIC_EnableIRQ(DMA2_Stream2_IRQn);
-	// __NVIC_EnableIRQ(DMA2_Stream7_IRQn);
-
 
 	volatile uint8 variable1[2] = {'b', 'o'};
 	volatile uint8 variable2[2] = {'f', 'a'};

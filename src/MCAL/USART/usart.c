@@ -152,12 +152,12 @@ MCALStatus_t USART_startTransmit_IT(USART_ManagerStruct *usartxManger, const uin
 		case USART2_BASE:
 			__NVIC_EnableIRQ(USART2_IRQn);
 			break;
-		case USART2_BASE:
-			__NVIC_EnableIRQ(USART2_IRQn);
+		case USART6_BASE:
+			__NVIC_EnableIRQ(USART6_IRQn);
 			break;
 		default:
 			//WRONG INPUTS
-			return MCAL_ERROR
+			return MCAL_ERROR;
 			break;
 	}
 
@@ -254,12 +254,12 @@ MCALStatus_t USART_startReceive_IT(USART_ManagerStruct *usartxManger, uint8_t *p
 		case USART2_BASE:
 			__NVIC_EnableIRQ(USART2_IRQn);
 			break;
-		case USART2_BASE:
-			__NVIC_EnableIRQ(USART2_IRQn);
+		case USART6_BASE:
+			__NVIC_EnableIRQ(USART6_IRQn);
 			break;
 		default:
 			//WRONG INPUTS
-			return MCAL_ERROR
+			return MCAL_ERROR;
 			break;
 	}
 	
