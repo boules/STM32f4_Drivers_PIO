@@ -15,27 +15,31 @@
 
 #include "platform_types.h"
 
-/* Macro to set only one bit */
-#define SET_BIT(reg, bit)				((reg) |= ( 1<<(bit) ))
-#define CLEAR_BIT(reg, bit)				((reg) &= ~(1<<(bit)) )
-#define TOGGLE_BIT(reg, bit) 			((reg) ^= ( 1<<(bit) ))
-#define BIT_IS_SET(reg, bit)			((reg) & ( 1<<(bit) ))
-#define BIT_IS_CLEAR(reg, bit)			(!((reg) & ( 1<<(bit) )))
-#define GET_BIT(reg, bit)				( ( (reg) & (1<<(bit)) ) >> (bit)  )
+/****************************************************************************************************************/
+/*********************************************** BIT AS INPUT ***************************************************/
+/****************************************************************************************************************/
 
-/******* meant to be moved*******start*/
+/* Bit Macro to set one bit only */
+#define SET_BIT(REG, BITNUM)				((REG) |= ( 1<<(BITNUM) ))
+#define CLEAR_BIT(REG, BITNUM)				((REG) &= ~(1<<(BITNUM)) )
+#define TOGGLE_BIT(REG, BITNUM) 			((REG) ^= ( 1<<(BITNUM) ))
 
-/*********************************/
-#define CREATE_32BIT_MASK(value, bit, shiftBy)				((value)<<((bit)*(shiftBy)))
-/*********************************/
+//Condition
+#define BIT_IS_SET(REG, BITNUM)				((REG) & ( 1<<(BITNUM) ))
+#define BIT_IS_CLEAR(REG, BITNUM)			(!((REG) & ( 1<<(BITNUM) )))
+
+//Get
+#define GET_BIT(REG, BITNUM)				( ( (REG) & (1<<(BITNUM)) ) >> (BITNUM)  )
 
 
+/* Create Masks */
+#define CREATE_32BIT_MASK(value, BITNUM, shiftBy)				((value)<<((BITNUM)*(shiftBy)))
 
-/* orring mutible bits by using the pin number*/
-#define CLEAR_MULTIBLE_BITS(reg, onesMask, bit, shiftBy)		((reg) &=  ~( CREATE_32BIT_MASK(onesMask, bit, shiftBy) ) )
-#define SETBYOR_MULTIBLE_BITS(reg, value, bit, shiftBy)			((reg) |=   ( CREATE_32BIT_MASK(value, bit, shiftBy) ) )
-#define CLEARANDSET_MULTIBLE_BITS(reg, bit, numOfBits, value)	((reg) = (((reg) & (~CREATE_32BIT_MASK(((1<<numOfBits)-1), bit, numOfBits))) | (CREATE_32BIT_MASK(value, bit, numOfBits))) )
 
+/* orring mutible bits by using the pin number*//*bits will create the mask*/
+#define CLEAR_MULTIBLE_BITS(reg, onesMask, BITNUM, shiftBy)		((reg) &=  ~( CREATE_32BIT_MASK(onesMask, BITNUM, shiftBy) ) )
+#define SETBYOR_MULTIBLE_BITS(reg, value, BITNUM, shiftBy)			((reg) |=   ( CREATE_32BIT_MASK(value, BITNUM, shiftBy) ) )
+#define CLEARANDSET_MULTIBLE_BITS(reg, BITNUM, numOfBits, value)	((reg) = (((reg) & (~CREATE_32BIT_MASK(((1<<numOfBits)-1), BITNUM, numOfBits))) | (CREATE_32BIT_MASK(value, BITNUM, numOfBits))) )
 
 enum shiftBy{
 	SHIFTBY_ONE = 1, SHIFTBY_TWO = 2, SHIFTBY_THREE = 3, SHIFTBY_FOUR = 4
@@ -44,18 +48,26 @@ enum shiftBy{
 enum onesMask{
 	TWO_ONES_MASK = 0b11, THREE_ONES_MASK = 0b111, FOUR_ONES_MASK = 0b1111
 };
-/************************************************************************************************************************/
+
+
+
+
+
+
+/****************************************************************************************************************/
+/*********************************************** MASKS AS INPUT ***************************************************/
+/****************************************************************************************************************/
+
+/* Macro that takes Mask as input*/
+
 /* clear bits BY MASKS of the wanted bits to clear and set*/
 #define REG_CLEARANDSET_BYMASKS(REG, CLEARMASK, SETMASK)  ((REG) = (((REG) & (~(CLEARMASK))) | (SETMASK)))
 #define CLEAR_AND_SET_BYMASKS(REG, CLEARMASK, SETMASK)  ((REG) = (((REG) & (~(CLEARMASK))) | (SETMASK)))
 
 
-
-
-
-
-
-#define CLEAR_BYMASK(REG, CLEARMASK)						(REG) &= ~(CLEARMASK);
+#define SET_BYMASK(REG, SETMASK)							((REG) |= (SETMASK));
+#define CLEAR_BYMASK(REG, CLEARMASK)						((REG) &= ~(CLEARMASK));
+#define TOGGLE_BYMASK(REG, TOGGLEMASK) 						((REG) ^= (TOGGLEMASK))
 
 #define IS_BIT_SET(REG, BITMASK)         ((REG) & (BITMASK))
 #define IS_BIT_CLR(REG, BITMASK)         (((REG) & (BITMASK)) == 0U)
@@ -67,8 +79,8 @@ enum onesMask{
 
 
 
-/***************** asmbley lines**********/
 
+/***************** asmbley lines**********/
 
 /* Enable IRQ Interrupts ... This Macro enables IRQ interrupts by clearing the I-bit in the PRIMASK. */
 #define Enable_Interrupts()    __asm("CPSIE I")
