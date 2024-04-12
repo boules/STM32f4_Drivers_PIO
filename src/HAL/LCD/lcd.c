@@ -6,7 +6,7 @@
  *
  * Description: Source file for the LCD driver
  *
- * Author: Mohamed Tarek
+ * Author: Boules Ruphael
  *
  *******************************************************************************/
 
@@ -18,7 +18,7 @@
 #include <stdlib.h> // for itoa function
 
 //you might use stdlib.h for itoa function
-
+//if 4 bits mode   you must send the most significant bits first
 /*******************************************************************************
  *                      Functions Definitions                                  *
  *******************************************************************************/
@@ -30,28 +30,24 @@
  * 2. Setup the LCD Data Mode 4-bits or 8-bits.
  */
 void LCD_init(void)
-{
+{	
+	/* Set the control bit (RS-RW-E) as OUTPUT */
 	/* Configure the direction for RS, RW and E pins as output pins */
 	DIO_setupPinDirection(LCD_RS_PORT_ID,LCD_RS_PIN_ID,PIN_OUTPUT);
 	DIO_setupPinDirection(LCD_RW_PORT_ID,LCD_RW_PIN_ID,PIN_OUTPUT);
 	DIO_setupPinDirection(LCD_E_PORT_ID,LCD_E_PIN_ID,PIN_OUTPUT);
 
+	/* Configure the data flow Pins(4 or 8) direction as OUTPUT */
+	DIO_setupChannelDirection_offset(LCD_DATA_PORT_ID, LCD_DATA_BITS_MODE, LCD_FIRST_DATA_PIN_ID, PIN_OUTPUT);
+
+
 #if (LCD_DATA_BITS_MODE == 4)
-
-	/* Configure 4 pins in the data port as output pins */
-	DIO_setupPinDirection(LCD_DATA_PORT_ID,LCD_FIRST_DATA_PIN_ID,PIN_OUTPUT);
-	DIO_setupPinDirection(LCD_DATA_PORT_ID,LCD_FIRST_DATA_PIN_ID+1,PIN_OUTPUT);
-	DIO_setupPinDirection(LCD_DATA_PORT_ID,LCD_FIRST_DATA_PIN_ID+2,PIN_OUTPUT);
-	DIO_setupPinDirection(LCD_DATA_PORT_ID,LCD_FIRST_DATA_PIN_ID+3,PIN_OUTPUT);
-
 	LCD_sendCommand(LCD_GO_TO_HOME);
 	LCD_sendCommand(LCD_TWO_LINES_FOUR_BITS_MODE); /* use 2-line lcd + 4-bit Data Mode + 5*7 dot display Mode */
-
 #elif (LCD_DATA_BITS_MODE == 8)
-	/* Configure the data port as output port */
-	GPIO_setupPortDirection(LCD_DATA_PORT_ID,PORT_OUTPUT);
 	LCD_sendCommand(LCD_TWO_LINES_EIGHT_BITS_MODE); /* use 2-line lcd + 8-bit Data Mode + 5*7 dot display Mode */
 #endif
+
 
 	LCD_sendCommand(LCD_CURSOR_OFF); /* cursor off */
 	LCD_sendCommand(LCD_CLEAR_COMMAND); /* clear LCD at the beginning */
@@ -63,22 +59,16 @@ void LCD_init(void)
  */
 void LCD_sendCommand(uint8 command)
 {
-	uint32 lcd_port_value = 0;
 	DIO_clearPin(LCD_RS_PORT_ID,LCD_RS_PIN_ID); /* Instruction Mode RS=0 */
 	DIO_clearPin(LCD_RW_PORT_ID,LCD_RW_PIN_ID); /* write data to LCD so RW=0 */
 	delay_ms(1); /* delay for processing Tas = 50ns */
 	DIO_setPin(LCD_E_PORT_ID,LCD_E_PIN_ID); /* Enable LCD E=1 */
 	delay_ms(1); /* delay for processing Tpw - Tdws = 190ns */
 
+
 #if (LCD_DATA_BITS_MODE == 4)
-	/* out the last 4 bits of the required command to the data bus D4 --> D7 */
-	// lcd_port_value = DIO_readChannel_ofset(LCD_DATA_PORT_ID, 4, 0);
-#ifdef LCD_LAST_PORT_PINS
-	lcd_port_value = (lcd_port_value & 0x0F) | (command & 0xF0);
-#else
-	lcd_port_value = ((command & 0xF0) >> 4);
-#endif
-	DIO_writeChannel_ofset(LCD_DATA_PORT_ID, 4, 0, lcd_port_value);
+	/* out the most signficant 4 bits of the required command to the data bus first D4 --> D7 */
+	DIO_writeChannel_offset(LCD_DATA_PORT_ID, 4, LCD_FIRST_DATA_PIN_ID, ((command & 0xF0) >> 4) );
 
 	delay_ms(1); /* delay for processing Tdsw = 100ns */
 	DIO_clearPin(LCD_E_PORT_ID,LCD_E_PIN_ID); /* Disable LCD E=0 */
@@ -86,21 +76,15 @@ void LCD_sendCommand(uint8 command)
 	DIO_setPin(LCD_E_PORT_ID,LCD_E_PIN_ID); /* Enable LCD E=1 */
 	delay_ms(1); /* delay for processing Tpw - Tdws = 190ns */
 
-	/* out the first 4 bits of the required command to the data bus D4 --> D7 */
-	// lcd_port_value = DIO_readChannel_ofset(LCD_DATA_PORT_ID, 4, 0);
-#ifdef LCD_LAST_PORT_PINS
-	lcd_port_value = (lcd_port_value & 0x0F) | ((command & 0x0F) << 4);
-#else
-	lcd_port_value = (command & 0x0F);
-#endif
-	DIO_writeChannel_ofset(LCD_DATA_PORT_ID, 4, 0, lcd_port_value);
+	/* out the least 4 bits of the required command to the data bus D4 --> D7 */
+	DIO_writeChannel_offset(LCD_DATA_PORT_ID, 4, LCD_FIRST_DATA_PIN_ID, ((command & 0x0F)) );
 
 	delay_ms(1); /* delay for processing Tdsw = 100ns */
 	DIO_clearPin(LCD_E_PORT_ID,LCD_E_PIN_ID); /* Disable LCD E=0 */
 	delay_ms(1); /* delay for processing Th = 13ns */
 
 #elif (LCD_DATA_BITS_MODE == 8)
-	GPIO_writePort(LCD_DATA_PORT_ID,command); /* out the required command to the data bus D0 --> D7 */
+	DIO_writeChannel_offset(LCD_DATA_PORT_ID, 8, LCD_FIRST_DATA_PIN_ID, command);
 	delay_ms(1); /* delay for processing Tdsw = 100ns */
 	DIO_clearPin(LCD_E_PORT_ID,LCD_E_PIN_ID); /* Disable LCD E=0 */
 	delay_ms(1); /* delay for processing Th = 13ns */
@@ -109,52 +93,47 @@ void LCD_sendCommand(uint8 command)
 
 /*
  * Description :
+ * the main lcd option
+ * Sends the display characters data (the lcd itself increase the address no need to handle it)
  * Display the required character on the screen
  */
 void LCD_displayCharacter(uint8 data)
 {
-	uint32 lcd_port_value = 0;
 	DIO_setPin(LCD_RS_PORT_ID,LCD_RS_PIN_ID); /* Data Mode RS=1 */
 	DIO_clearPin(LCD_RW_PORT_ID,LCD_RW_PIN_ID); /* write data to LCD so RW=0 */
 	delay_ms(1); /* delay for processing Tas = 50ns */
+
 	DIO_setPin(LCD_E_PORT_ID,LCD_E_PIN_ID); /* Enable LCD E=1 */
 	delay_ms(1); /* delay for processing Tpw - Tdws = 190ns */
+
 
 #if (LCD_DATA_BITS_MODE == 4)
 	/* out the last 4 bits of the required data to the data bus D4 --> D7 */
-	// lcd_port_value = GPIO_readPort(LCD_DATA_PORT_ID);
-#ifdef LCD_LAST_PORT_PINS
-	lcd_port_value = (lcd_port_value & 0x0F) | (data & 0xF0);
-#else
-	lcd_port_value = ((data & 0xF0) >> 4);
-#endif
-	DIO_writeChannel_ofset(LCD_DATA_PORT_ID, 4, 0, lcd_port_value);
-
+	DIO_writeChannel_offset(LCD_DATA_PORT_ID, LCD_DATA_BITS_MODE, LCD_FIRST_DATA_PIN_ID, ((data & 0xF0) >> 4) );
 	delay_ms(1); /* delay for processing Tdsw = 100ns */
+
 	DIO_clearPin(LCD_E_PORT_ID,LCD_E_PIN_ID); /* Disable LCD E=0 */
 	delay_ms(1); /* delay for processing Th = 13ns */
+
 	DIO_setPin(LCD_E_PORT_ID,LCD_E_PIN_ID); /* Enable LCD E=1 */
 	delay_ms(1); /* delay for processing Tpw - Tdws = 190ns */
 
-	/* out the first 4 bits of the required data to the data bus D4 --> D7 */
-	// lcd_port_value = GPIO_readPort(LCD_DATA_PORT_ID);
-#ifdef LCD_LAST_PORT_PINS
-	lcd_port_value = (lcd_port_value & 0x0F) | ((data & 0x0F) << 4);
-#else
-	lcd_port_value = (data & 0x0F);
-#endif
-	DIO_writeChannel_ofset(LCD_DATA_PORT_ID, 4, 0, lcd_port_value);
-
+	/* out the first 4 bits of the required data to the data bus D0 --> D3 */
+	DIO_writeChannel_offset(LCD_DATA_PORT_ID, LCD_DATA_BITS_MODE, LCD_FIRST_DATA_PIN_ID, (data & 0x0F));
 	delay_ms(1); /* delay for processing Tdsw = 100ns */
+
 	DIO_clearPin(LCD_E_PORT_ID,LCD_E_PIN_ID); /* Disable LCD E=0 */
 	delay_ms(1); /* delay for processing Th = 13ns */
 
 #elif (LCD_DATA_BITS_MODE == 8)
-	GPIO_writePort(LCD_DATA_PORT_ID,data); /* out the required data to the data bus D0 --> D7 */
+	DIO_writeChannel_offset(LCD_DATA_PORT_ID, LCD_DATA_BITS_MODE, LCD_FIRST_DATA_PIN_ID, data); /* out the required data to the data bus D0 --> D7 */
 	delay_ms(1); /* delay for processing Tdsw = 100ns */
+
 	DIO_clearPin(LCD_E_PORT_ID,LCD_E_PIN_ID); /* Disable LCD E=0 */
 	delay_ms(1); /* delay for processing Th = 13ns */
 #endif
+
+
 }
 
 
