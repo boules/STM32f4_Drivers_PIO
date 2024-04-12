@@ -17,6 +17,6 @@
 
 /* Pre-compile selection for MC number of pins */
 #define LQFP								(64)					/* 64 or 100 */
-#define configuredPins						(17)
+#define configuredPins						(21)
 
 #endif /* PORT_CFG_H */
