@@ -141,6 +141,7 @@ int main(void)
 	 */
 
 //DMA memtomem
+#ifdef DMA_memtomem
 	/**
 	 */
 	// volatile uint8 srcVariable = 5;
@@ -163,7 +164,7 @@ int main(void)
 	// }
 	 /* 
 	*/
-
+#endif
 
 //UART interrupts testing 
 #ifdef UART_interrupts_testing

@@ -4,3 +4,7 @@
 .vscode/launch.json
 .vscode/ipch
 .vscode
+src/MCAL/FLS/*
+src/MCAL/FLS_gp/*
+src/MCAL/CAN_gp/*
+src/MCAL/CAN/*
