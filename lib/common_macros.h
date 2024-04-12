@@ -61,7 +61,7 @@ enum onesMask{
 /* Macro that takes Mask as input*/
 
 /* clear bits BY MASKS of the wanted bits to clear and set*/
-#define REG_CLEARANDSET_BYMASKS(REG, CLEARMASK, SETMASK)  ((REG) = (((REG) & (~(CLEARMASK))) | (SETMASK)))
+//#define REG_CLEARANDSET_BYMASKS(REG, CLEARMASK, SETMASK)  ((REG) = (((REG) & (~(CLEARMASK))) | (SETMASK)))
 #define CLEAR_AND_SET_BYMASKS(REG, CLEARMASK, SETMASK)  ((REG) = (((REG) & (~(CLEARMASK))) | (SETMASK)))
 
 
