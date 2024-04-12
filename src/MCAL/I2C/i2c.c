@@ -251,7 +251,7 @@ void I2C_Init(uint8 I2Cmodule, I2C_InitTypeDef* configPtr){
 
 /*---------------------------- I2C OAR1 Configuration ---------------------*/
   /* Configure I2C Own Address and 7bit addressing mode */
-	REG_CLEARANDSET_BYMASKS(I2C1->OAR1, 
+	CLEAR_AND_SET_BYMASKS(I2C1->OAR1, 
 							(I2C_OAR1_ADDMODE | I2C_OAR1_ADD8_9 | I2C_OAR1_ADD1_7 | I2C_OAR1_ADD0), 
 							(configPtr->AddressingMode | ((configPtr->OwnAddress1)<<1)));
 

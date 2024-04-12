@@ -59,10 +59,10 @@ void USART_Init(USART_ManagerStruct *usartxManager)
 	usartxManager->Instance->CR1 &= ~USART_CR1_UE;
 
 	// Configure stop bits
-	REG_CLEARANDSET_BYMASKS(usartxManager->Instance->CR2, USART_CR2_STOP_clrMsk, usartxManager->Init.StopBits);
+	CLEAR_AND_SET_BYMASKS(usartxManager->Instance->CR2, USART_CR2_STOP_clrMsk, usartxManager->Init.StopBits);
 
 	// configure Wordlength, parity, TxorRX mode
-	REG_CLEARANDSET_BYMASKS(usartxManager->Instance->CR1,
+	CLEAR_AND_SET_BYMASKS(usartxManager->Instance->CR1,
 							((uint32)(USART_CR1_M_clrMsk | USART_CR1_PCE_clrMsk | USART_CR1_PS_clrMsk | USART_CR1_TE_clrMsk | USART_CR1_RE_clrMsk)),
 							((uint32)usartxManager->Init.WordLength | usartxManager->Init.Parity | usartxManager->Init.Mode));
 
