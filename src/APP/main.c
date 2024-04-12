@@ -35,9 +35,9 @@
 /* USER CODE BEGIN PD */
 /* USER CODE END PD */
 
-/* Private variables ---------------------------------------------------------*/
-/* USER CODE BEGIN PV */
-/* USER CODE END PV */
+/* Global variables ---------------------------------------------------------*/
+/* USER CODE BEGIN GV */
+/* USER CODE END GV */
 
 /* Extern variables ---------------------------------------------------------*/
 /* USER CODE BEGIN EV */
@@ -71,10 +71,9 @@ int main(void)
 
 
 // LCD
-	DIO_setPin(LCD_E_PORT_ID, LCD_E_PIN_ID);
 	LCD_init(); /* Initialize the LCD */
 	LCD_displayString("Welcome To LCD");
-	LCD_displayStringRowColumn(1, 0, "4 Bits Data Mode");
+	LCD_displayStringRowColumn(1, 0, "8 Bits Data Mode");
 
 	delay_ms(100);
 	LCD_clearScreen();
@@ -87,8 +86,6 @@ int main(void)
 	volatile uint8 variable1[2] = {'b', 'o'};
 	volatile uint8 variable2[2] = {'f', 'a'};
 
-	
-	// DMA_start(&dma2Manager_stream0_memtomem, (uint32)&srcVariable, (uint32)&dstVariable, 1);
 	USART_Receive_DMA(&usart1Manager, &variable1, 2);
 
 
