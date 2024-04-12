@@ -56,9 +56,9 @@ void DIO_togglePin(uint8 portNum, uint8 pinNum){
 
 
 
-/**
- * set Pin mode and direction
-*/
+
+/*-------------------------- Direction Handling ----------------------------*/
+/* Change Single Pin direction */
 void DIO_setupPinDirection(uint8 portNum, uint8 pinNum, GPIO_PinDirectionType direction ){
 	
 	volatile GPIO_RegStruct* GPIOx_basePtr = NULL_PTR;											/* Port Channel pointer */
@@ -69,8 +69,8 @@ void DIO_setupPinDirection(uint8 portNum, uint8 pinNum, GPIO_PinDirectionType di
 	SETBYOR_MULTIBLE_BITS((GPIOx_basePtr->MODER), (direction), (pinNum), SHIFTBY_TWO);
 }
 
-
-void DIO_setupChannelDirection_ofset(uint8 portNum, uint8 numOfPins, uint8 ofset, GPIO_PinDirectionType direction){
+/* Change connected group of Pins directions */
+void DIO_setupChannelDirection_offset(uint8 portNum, uint8 numOfPins, uint8 ofset, GPIO_PinDirectionType direction){
 	volatile GPIO_RegStruct* GPIOx_basePtr = NULL_PTR;											/* Port Channel pointer */
 	getBaseAddress(portNum, &GPIOx_basePtr);
 
@@ -78,8 +78,9 @@ void DIO_setupChannelDirection_ofset(uint8 portNum, uint8 numOfPins, uint8 ofset
 }
 
 
-
-void DIO_writeChannel_ofset(uint8 portNum, uint8 numOfPins, uint8 ofset, uint32 value){
+/*---------------------------- Group setups -----------------------------*/
+/* write connected group of pins whether HIGH or LOW*/
+void DIO_writeChannel_offset(uint8 portNum, uint8 numOfPins, uint8 ofset, uint32 value){
 	
 	volatile GPIO_RegStruct* GPIOx_basePtr = NULL_PTR;											/* Port Channel pointer */
 	getBaseAddress(portNum, &GPIOx_basePtr);
@@ -87,13 +88,16 @@ void DIO_writeChannel_ofset(uint8 portNum, uint8 numOfPins, uint8 ofset, uint32 
 	CLEARANDSET_MULTIBLE_BITS((GPIOx_basePtr->ODR), ofset, numOfPins, value);
 }
 
-uint32 DIO_readChannel_ofset(uint8 portNum, uint8 numOfPins, uint8 ofset){
+/* read connected group of pins Digital DATA*/
+uint32 DIO_readChannel_offset(uint8 portNum, uint8 numOfPins, uint8 ofset){
 	volatile GPIO_RegStruct* GPIOx_basePtr = NULL_PTR;											/* Port Channel pointer */
 	getBaseAddress(portNum, &GPIOx_basePtr);
 
 	return (((GPIOx_basePtr->IDR) & ( ((1<<numOfPins)-1)<<ofset))>> ofset);
 }
 
+
+/* Reads all port pins (16pins) of the specific port */
 uint32 DIO_readPort(uint8 portNum){
 	volatile GPIO_RegStruct* GPIOx_basePtr = NULL_PTR;											/* Port Channel pointer */
 	getBaseAddress(portNum, &GPIOx_basePtr);
