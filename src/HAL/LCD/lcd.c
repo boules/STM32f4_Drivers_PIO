@@ -40,9 +40,9 @@ void LCD_init(void)
 	/* Configure the data flow Pins(4 or 8) direction as OUTPUT */
 	DIO_setupChannelDirection_offset(LCD_DATA_PORT_ID, LCD_DATA_BITS_MODE, LCD_FIRST_DATA_PIN_ID, PIN_OUTPUT);
 
-
-#if (LCD_DATA_BITS_MODE == 4)
 	LCD_sendCommand(LCD_GO_TO_HOME);
+	
+#if (LCD_DATA_BITS_MODE == 4)
 	LCD_sendCommand(LCD_TWO_LINES_FOUR_BITS_MODE); /* use 2-line lcd + 4-bit Data Mode + 5*7 dot display Mode */
 #elif (LCD_DATA_BITS_MODE == 8)
 	LCD_sendCommand(LCD_TWO_LINES_EIGHT_BITS_MODE); /* use 2-line lcd + 8-bit Data Mode + 5*7 dot display Mode */
