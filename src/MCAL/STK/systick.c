@@ -7,21 +7,30 @@
 #define F_CPU 16000000(UL)
 #endif
 
-// #define TICKTIME (1/F_CPU) (UL)
+#define MAX_COUN 16776216(UL)
+
+/*<! count_time= 62.5ns  if 16Mhz>
+ *   count_time= 0.5u       if prescaler/8 is enabled 
+ */
+// #define COUNT_TIME (1/F_CPU) (UL)
+
+/** TICKTIME is cpnfigurable it is the i
+ *  Systick count register is 24 bit 
+ * 	then Max ticktime = 16'776'216 X COUNT_TIME
+ * 
+*/
 
 /**
  * max input 8388 ms
  * you need to handle errors
 */
 void STK_setTime_ms(uint16 num_of_milliseconds){
-	//default TickTime   0.5u   which will make the range equals    0 >   8 seconds(~ 8388 ms) 
+	//default SYSTICK_Time (if prescaler/8)  = 0.5u   which will make the range equals    0 >   8 seconds(~ 8388 ms) 
 
 	// recheck that the prescaler /8 is enabled  when ==0 prescale/8 is enabled
 	SysTick->CTRL &= ~SysTick_CTRL_CLKSOURCE_Msk;
 
-	/**
-	 * if max input which is 8388   the maxload == 16776000  which is less than 0x00ffffff the max value of the register 
-	*/
+	/* if max input which is 8388   the maxload == 16'776'216  which is less than 0x00ffffff the max value of the register */
 	uint32 loadValue = ((num_of_milliseconds*2000)-1) & 0x00ffFFff;
 
 	SysTick->LOAD =  (uint32) loadValue;
