@@ -44,7 +44,7 @@ DMA_HandleTypeDef dma2Manager_stream2_usart1_rx={
 };
 
 // /* USART1_TX Init */
-// DMA_HandleTypeDef dma2Manager_stream2_usart1_tx={
+// DMA_HandleTypeDef dma2Manager_stream7_usart1_tx={
 // 	.Instance = DMA2_Stream7,
 // 	.Init ={
 // 		.Channel = DMA_CHANNEL_4,
