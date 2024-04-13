@@ -1,5 +1,6 @@
 /*** Information about I2C 
- * USART sends the least significient bit first
+ * I2C sends the MOST significient bit first
+ * I2C is Half duplex
  *
  * 
  * to configure :
@@ -105,25 +106,12 @@ Bit 15 ADDMODE Addressing mode (slave mode)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #include "rcc.h"
 #include "i2c.h"
 #include "i2c_regs.h"
-#include <stdint.h>
+#include "platform_types"
 #include "common_macros.h"
+#include "mcal_def.h"
 
 
 
@@ -209,59 +197,74 @@ Bit 15 ADDMODE Addressing mode (slave mode)
 
 
 
-void I2C_Init(uint8 I2Cmodule, I2C_InitTypeDef* configPtr){
+MCALStatus_t I2C_Init(I2C_ManagerStruct* i2cxManager){
 
-	RCC_Enable(RCC_I2C1);
+	if (i2cxManager == NULL_PTR)
+	{
+		return MCAL_ERROR;
+	}
 
+	// Enable the module clock RCC
+	switch (i2cxManager->Instance)
+	{
+		case I2C1:
+			RCC_Enable(RCC_I2C1);
+			break;
 
+		case I2C2:
+			RCC_Enable(RCC_I2C2);
+			break;
+		
+		case I2C3:
+			RCC_Enable(RCC_I2C3);
+			break;
 
+		default:
+			break;
+	}
+	
+	// i2cxManager->State = HAL_I2C_STATE_BUSY;
 
-
-/*---------------------------- I2C CR1 & CR2 Configuration --------------------*/
+ /*---------------------------- I2C CR1 & CR2 Configuration --------------------*/
     // Disable I2C peripheral to configure it
-	CLEAR_BYMASK(I2C1->CR1, I2C_CR1_PE);
+	CLEAR_BYMASK(i2cxManager->Instance->CR1, I2C_CR1_PE);
 
-	/*************/
 	/*software Reset I2C*/
-	//   I2C1->CR1 |= I2C_CR1_SWRST;
-	//   I2C1->CR1 &= ~I2C_CR1_SWRST;
-	/*************/
+	i2cxManager->Instance->CR1 |= I2C_CR1_SWRST;
+	i2cxManager->Instance->CR1 &= ~I2C_CR1_SWRST;
+
 
     // Frequency range: Set peripheral clock frequency (16 MHz in this example) /* 6 bits for the frequency*/
-	CLEAR_AND_SET_BYMASKS(I2C1->CR2, I2C_CR2_FREQ, 16UL);
+	CLEAR_AND_SET_BYMASKS(i2cxManager->Instance->CR2, I2C_CR2_FREQ, 16UL);
 
 
-
-/*---------------------------- I2C TRISE Configuration --------------------*/
 	/* Configure I2C Rise Time (Fclk/1Mhz)+1*/
-	CLEAR_AND_SET_BYMASKS(I2C1->TRISE, I2C_TRISE_TRISE,(FREQ_range+1));
-	// CLEAR_AND_SET_BYMASKS(I2C1->TRISE, I2C_TRISE_TRISE, I2C_RISE_TIME(FREQ_range, configPtr->ClockSpeed));
+	CLEAR_AND_SET_BYMASKS(i2cxManager->Instance->TRISE, I2C_TRISE_TRISE,(FREQ_range+1));
+	// CLEAR_AND_SET_BYMASKS(i2cxManager->Instance->TRISE, I2C_TRISE_TRISE, I2C_RISE_TIME(FREQ_range, configPtr->ClockSpeed));
 
 
-
-/*---------------------------- I2C CCR Configuration ----------------------*/
-  /* Configure I2Cx speed modes: set Sm   Standard mode  */
-	I2C1->CCR = 0;
-  	CLEAR_AND_SET_BYMASKS(I2C1->CCR, 
+	/* Configure I2Cx speed modes: set Sm   Standard mode  */
+	i2cxManager->Instance->CCR = 0;
+  	CLEAR_AND_SET_BYMASKS(i2cxManager->Instance->CCR, 
 							(I2C_CCR_FS | I2C_CCR_DUTY | I2C_CCR_CCR), 
 							i2cStandardMode| CCR_Value_StandardMode(Pclock, configPtr->ClockSpeed));
-    // I2C1->CCR |= 210;         // Set clock control register (CCR) value for desired SCL frequency
-	/*CCR = Fpclk/(2*Fsclk) */
+ 
 
-
-/*---------------------------- I2C OAR1 Configuration ---------------------*/
-  /* Configure I2C Own Address and 7bit addressing mode */
-	CLEAR_AND_SET_BYMASKS(I2C1->OAR1, 
+	/* Configure I2C Own Address and 7bit addressing mode */
+	CLEAR_AND_SET_BYMASKS(i2cxManager->Instance->OAR1, 
 							(I2C_OAR1_ADDMODE | I2C_OAR1_ADD8_9 | I2C_OAR1_ADD1_7 | I2C_OAR1_ADD0), 
 							(configPtr->AddressingMode | ((configPtr->OwnAddress1)<<1)));
 
 
 
-
-
-
 	// Enable the I2C peripheral
-    I2C1->CR1 |= I2C_CR1_PE;
+    i2cxManager->Instance->CR1 |= I2C_CR1_PE;
+
+	/* Set Manager Flags*/
+	i2cxManager->ErrorCode = MCAL_I2C_ERROR_NONE;
+  	i2cxManager->State = MCAL_I2C_STATE_READY;
+
+	return MCAL_OK;
 }
 
 
@@ -270,167 +273,323 @@ void I2C_Init(uint8 I2Cmodule, I2C_InitTypeDef* configPtr){
 
 
 
-
-
-
-
-void I2C_Master_Transmit(uint8 I2Cmodule, uint16_t DevAddress, uint8_t *pData, uint8_t length){
+MCALStatus_t I2C_Master_Transmit(I2C_ManagerStruct* i2cxManager, uint16 DevAddress, uint8 *pData, uint8 length){
 	
-	
-	
-	// wait while busy (while there is communication on the bus)
-	while((( I2C1->SR2 & I2C_SR2_BUSY) >> I2C_SR2_BUSY_Pos));
+	/* Chek if ready */
+	if(i2cxManager->State != MCAL_I2C_STATE_READY){
+		return MCAL_BUSY;
+	}
+
+	// wait while BUS is busy (while there is communication on the bus)
+	while( (i2cxManager->Instance->SR2 & I2C_SR2_BUSY) );
 	
 	// Enable the I2C peripheral (it should be : if not enable then enable)
-    I2C1->CR1 |= I2C_CR1_PE;
+    if ((i2cxManager->Instance->CR1 & I2C_CR1_PE) != I2C_CR1_PE)
+    {
+		i2cxManager->Instance->CR1 |= I2C_CR1_PE;
+	}
 	
-	
-	/* Disable Pos */
-    CLEAR_BIT(I2C1->CR1, I2C_CR1_POS_Pos);
+	/* Disable Pos 0: ACK at the end of the data, 1: ACK is at first (i guess)*/
+    i2cxManager->Instance->CR1 &= ~I2C_CR1_POS;
 
+	/* Prepare State Flags */
+	i2cxManager->State       = MCAL_I2C_STATE_BUSY_TX;
+    i2cxManager->Mode        = MCAL_I2C_MODE_MASTER;
+    i2cxManager->ErrorCode   = MCAL_I2C_ERROR_NONE;
 
+	/* Prepare transfer parameters */
+    i2cxManager->pBuffPtr    = pData;
+    i2cxManager->XferCount   = Size;
+    i2cxManager->XferSize    = i2cxManager->XferCount;
+    i2cxManager->XferOptions = I2C_NO_OPTION_FRAME;
 
 /*********************(master) request write (Frame Head)***************************/
 	//generate start
-	SET_BIT(I2C1->CR1, I2C_CR1_START_Pos);
+	i2cxManager->Instance->CR1 |= I2C_CR1_START;
 
 	//wait until its start is fully generated 
-	while( ( I2C1->SR1 & I2C_SR1_SB) == 0 );			//master mode flag
-	//if you passed that while then you are in MASETER mode
+	while( ( i2cxManager->Instance->SR1 & I2C_SR1_SB) == 0 );			//master mode flag
+	//if you passed that while then you are in MASTER mode
 
-	// while ((I2C1->SR2 & I2C_SR2_MSL_Msk) == 1)
+	// while ((i2cxManager->Instance->SR2 & I2C_SR2_MSL_Msk) == 1)
+	// MSL should be 1 because its Master mode no need to poll for it
+	/** MSL flag in SR2
+	 * 1 Master mode
+	 * 0 Slave mode
+	*/
 
-
-	// if (I2C1->AddressingMode == I2C_ADDRESSINGMODE_7BIT)
-	// {
+	if (i2cxManager->Instance->AddressingMode == I2C_ADDRESSINGMODE_7BIT)
+	{
 		/* Send slave address */
-		I2C1->DR = I2C_7BIT_ADD_WRITE(DevAddress);
-		// I2C1->DR = I2C_7BIT_ADD_READ(DevAddress);
-	// }
-
-
-
-
+		i2cxManager->Instance->DR = I2C_7BIT_ADD_WRITE(DevAddress);     // if write mode (TRANSMIT)
+		// i2cxManager->Instance->DR = I2C_7BIT_ADD_READ(DevAddress);	// if read mode (Receive)
+	}else{
+		//ERROR (ONLY 7bit MODE handled)
+	}
 	/* Halt if  the address isn't yet sent  and   you are still a master(didn't lose arbitration) */
 	// wait untill ADDR flag is 1  which mean that address is transmitted successfully
 	// Address sent (Master)
 	// 0: No end of address transmission
 	// 1: End of address transmission
-	while( (( I2C1->SR1 & I2C_SR1_ADDR) == 0) /*&&  ((I2C1->SR2 & I2C_SR2_MSL_Msk) == 1)*/);
+	while( (( i2cxManager->Instance->SR1 & I2C_SR1_ADDR) == 0) /*&&  ((i2cxManager->Instance->SR2 & I2C_SR2_MSL_Msk) == 1)*/);
 	
-
-/********************************************************************/
-
-
 	// Clear ADDR flag
 	{
 		volatile uint32_t tmpreg = 0x00U;
-		tmpreg = I2C1->SR1;
-		tmpreg = I2C1->SR2;
+		tmpreg = i2cxManager->Instance->SR1;
+		tmpreg = i2cxManager->Instance->SR2;
 		(void)tmpreg;
 	}
 
+/********************************************************************/
 
-
-
-
-
+/********************* Looping to send the data *************************/
 	//Bit 7 TxE: Data register empty (transmitters)   // doest rise after the address phase
 	//0: Data register not empty
 	//1: Data register empty
-	// while((( I2C1->SR1 & I2C_SR1_TXE) >> I2C_SR1_TXE_Pos) == 0);
-
-
 
 // Send data
 	for (uint8_t i = 0; i < (length); i++){
 		
-
         // Wait until data register is empty
-        while (!(I2C1->SR1 & I2C_SR1_TXE));
+        while ( (i2cxManager->Instance->SR1 & I2C_SR1_TXE)==0 );
         
-
 		// Send data
-        I2C1->DR = pData[i];
+        i2cxManager->Instance->DR = pData[i];
 
 
-
-		// i guess again i guess check for ack
-		while ((( I2C1->SR1 & I2C_SR1_BTF) >> I2C_SR1_BTF_Pos) == 0);
+		// i guess again i guess check for ack (BYTE TRANSFER FINISHED)
+		while ( ( i2cxManager->Instance->SR1 & I2C_SR1_BTF) == 0 );
 		
     }
 
-
-
-
-//TXE means the data register is empty and SR1. BTF means that both the data register and the shift register are empty.
-	// Bit 2 BTF: Byte transfer finished
-	// 0: Data byte transfer not done
-	// 1: Data byte transfer succeeded
-	// while ((( I2C1->SR1 & I2C_SR1_BTF) >> I2C_SR1_BTF_Pos) == 0);
-
-
+	//TXE means the data register is empty and SR1. BTF means that both the data register and the shift register are empty.
+		// Bit 2 BTF: Byte transfer finished
+		// 0: Data byte transfer not done
+		// 1: Data byte transfer succeeded
+	//
 
 	/* Generate Stop */
-    SET_BIT(I2C1->CR1, I2C_CR1_STOP_Pos);
+    i2cxManager->Instance->CR1 |= I2C_CR1_STOP;
+
+	i2cxManager->State = MCAL_I2C_STATE_READY;
+    i2cxManager->Mode = MCAL_I2C_MODE_NONE;
+	return MCAL_OK;
+}
 
 
 
+MCALStatus_t I2C_Master_Receive(I2C_ManagerStruct* i2cxManager, uint16 DevAddress, uint8 *pData, uint8 length){
+
+	/* Chek if ready */
+	if(i2cxManager->State != MCAL_I2C_STATE_READY){
+		return MCAL_BUSY;
+	}
+
+	if(pData == NULL_PTR){
+		return MCAL_ERROR;
+	}
+
+	// wait while BUS is busy (while there is communication on the bus)
+	while( (i2cxManager->Instance->SR2 & I2C_SR2_BUSY) );
+	
+	
+	// Enable the I2C peripheral (it should be : if not enable then enable)
+    if ((i2cxManager->Instance->CR1 & I2C_CR1_PE) != I2C_CR1_PE)
+    {
+		i2cxManager->Instance->CR1 |= I2C_CR1_PE;
+	}
+	
+	
+	/* Disable Pos 0: ACK at the end of the data, 1: ACK is at first (i guess)*/
+    i2cxManager->Instance->CR1 &= ~I2C_CR1_POS;
+
+	/* Prepare State Flags */
+	i2cxManager->State       = MCAL_I2C_STATE_BUSY_RX;
+    i2cxManager->Mode        = MCAL_I2C_MODE_MASTER;
+    i2cxManager->ErrorCode   = MCAL_I2C_ERROR_NONE;
+
+	/* Prepare transfer parameters */
+    i2cxManager->pBuffPtr    = pData;
+    i2cxManager->XferCount   = Size;
+    i2cxManager->XferSize    = i2cxManager->XferCount;
+    i2cxManager->XferOptions = I2C_NO_OPTION_FRAME;
+
+
+/*********************(master) request Read (Frame Head)***************************/
+	/* Enable Acknowledge */
+	i2cxManager->Instance->CR1 |= I2C_CR1_ACK;
+
+	/* Generate Start */
+	i2cxManager->Instance->CR1 |= I2C_CR1_START;
+	
+	//wait until its start is fully generated 
+	while( ( i2cxManager->Instance->SR1 & I2C_SR1_SB) == 0 );			//master mode flag
+	//if you passed that while then you are in MASTER mode
+
+	// while ((i2cxManager->Instance->SR2 & I2C_SR2_MSL_Msk) == 1)
+	// MSL should be 1 because its Master mode no need to poll for it
+	/** MSL flag in SR2
+	 * 1 Master mode
+	 * 0 Slave mode
+	*/
+
+
+	if (i2cxManager->Instance->AddressingMode == I2C_ADDRESSINGMODE_7BIT)
+	{
+		/* Send slave address */
+		i2cxManager->Instance->DR = I2C_7BIT_ADD_WRITE(DevAddress);     // if write mode (TRANSMIT)
+		// i2cxManager->Instance->DR = I2C_7BIT_ADD_READ(DevAddress);	// if read mode (Receive)
+	}else{
+		//ERROR (ONLY 7bit MODE handled)
+	}
+	/* Halt if  the address isn't yet sent  and   you are still a master(didn't lose arbitration) */
+	// wait untill ADDR flag is 1  which mean that address is transmitted successfully
+	// Address sent (Master)
+	// 0: No end of address transmission
+	// 1: End of address transmission
+	while( (( i2cxManager->Instance->SR1 & I2C_SR1_ADDR) == 0) /*&&  ((i2cxManager->Instance->SR2 & I2C_SR2_MSL_Msk) == 1)*/);
+	
+	//address flag maybe means that you are still in receive modeS
+	// Clear ADDR flag
+	{
+		volatile uint32_t tmpreg = 0x00U;
+		tmpreg = i2cxManager->Instance->SR1;
+		tmpreg = i2cxManager->Instance->SR2;
+		(void)tmpreg;
+	}
+
+
+	/********************* Looping to send the data *************************/
+	//Bit 6 RxNE: Data register empty (transmitters)   // doesnt rise at the address phase
+	//0: Data register empty
+	//1: Data register not empty
+
+	// Recieve data
+	for (uint8_t i = 0; i < (length); i++){
+		
+        // Wait until the data gets to the Receiver
+        while (!(i2cxManager->Instance->SR1 & I2C_SR1_RXNE));
+        
+		/* Read data from DR */
+        pData[i] = (uint8)i2cxManager->Instance->DR;
+		
+
+		// i guess again i guess check for ack (BYTE TRANSFER FINISHED)
+		while ( ( i2cxManager->Instance->SR1 & I2C_SR1_BTF) == 0 );
+		
+    }
+
+	// not sure //RXNE means the data register Has received something and SR1. BTF means that both the data register and the shift register are empty.
+		// Bit 2 BTF: Byte transfer finished
+		// 0: Data byte transfer not done
+		// 1: Data byte transfer succeeded
+	//
+	/**** side note (stm observation) *** Probably Ignore
+	 * before receiving the last 2 bytes  1.disable the ACK 2.enable pos
+	 * before recieving the last 1 byte   1. disable the ACk 2.Generate the stop bit
+	*/
+	/* Generate Stop */
+    i2cxManager->Instance->CR1 |= I2C_CR1_STOP;
+
+	i2cxManager->State = MCAL_I2C_STATE_READY;
+    i2cxManager->Mode = MCAL_I2C_MODE_NONE;
+	return MCAL_OK;
 }
 
 
 
 
+MCALStatus_t I2C_Slave_Receive(I2C_ManagerStruct* i2cxManager, uint8 *pData, uint8 length){
+	
+	/* Chek if ready */
+	if(i2cxManager->State != MCAL_I2C_STATE_READY){
+		return MCAL_BUSY;
+	}
+
+	if(pData == NULL_PTR){
+		return MCAL_ERROR;
+	}
 
 
-void I2C_Slave_Receive(uint8 I2Cmodule, uint8_t *pData, uint8_t length){
 
-	/* Disable Pos */
-    CLEAR_BIT(I2C1->CR1, I2C_CR1_POS_Pos);
+	// Enable the I2C peripheral (it should be : if not enable then enable)
+    if ((i2cxManager->Instance->CR1 & I2C_CR1_PE) != I2C_CR1_PE)
+    {
+		i2cxManager->Instance->CR1 |= I2C_CR1_PE;
+	}
+	
 
+	/* Disable Pos 0: ACK at the end of the data, 1: ACK is at first (i guess)*/
+    i2cxManager->Instance->CR1 &= ~I2C_CR1_POS;
+
+
+
+	/* Prepare State Flags */
+	i2cxManager->State       = MCAL_I2C_STATE_BUSY_RX;
+    i2cxManager->Mode        = MCAL_I2C_MODE_SLAVE;
+    i2cxManager->ErrorCode   = MCAL_I2C_ERROR_NONE;
+
+    /* Prepare transfer parameters */
+    i2cxManager->pBuffPtr    = pData;
+    i2cxManager->XferCount   = Size;
+    i2cxManager->XferSize    = i2cxManager->XferCount;
+    i2cxManager->XferOptions = I2C_NO_OPTION_FRAME;
+
+/*********************(slave) Read (Frame)***************************/
 	/* Enable Address Acknowledge    (to Send ack after recieveing(not sure))*/
-    SET_BIT(I2C1->CR1, I2C_CR1_ACK_Pos);
+    i2cxManager->Instance->CR1 |= I2C_CR1_ACK;
 
 	/** wait untill ADDR flag is 1  which mean that address is matched(slave)
 	* Address matched (Slave)
 	* 0: Address mismatched or not received.
 	* 1: Received address matched. */
-	while((( I2C1->SR1 & I2C_SR1_ADDR) >> I2C_SR1_ADDR_Pos) == 0);
+	while(( i2cxManager->Instance->SR1 & I2C_SR1_ADDR) == 0);
 
 	// Clear ADDR flag by reading SR1 and SR2 {} to resolve a confilt of recreating uint tmpreg
 	{
 		volatile uint32_t tmpreg = 0x00U;
-		tmpreg = I2C1->SR1;
-		tmpreg = I2C1->SR2;
+		tmpreg = i2cxManager->Instance->SR1;
+		tmpreg = i2cxManager->Instance->SR2;
 		(void)tmpreg;
 	}
 
 
+	/********************* Looping to send the data *************************/
+	//Bit 6 RxNE: Data register empty (transmitters)   // doesnt rise at the address phase
+	//0: Data register empty
+	//1: Data register not empty
+
 	// Recieve data
     for (uint8_t i = 0; i < length; i++) {
         // Wait until data register is empty
-        while (!(I2C1->SR1 & I2C_SR1_RXNE));
+        while (!(i2cxManager->Instance->SR1 & I2C_SR1_RXNE)){
+
+			// //check if it received a Stop bit and the receiving has ended
+			// if( (i2cxManager->Instance->SR1 & I2C_SR1_STOPF) ){
+			// 	return MCAL_ERROR;
+			// }
+		}
+
         // Send data
-        pData[i] = (uint8_t)I2C1->DR;
+        pData[i] = (uint8_t)i2cxManager->Instance->DR;
 
     }
 
-	// Wait until all data is transmitted
-    // while (!(I2C1->SR1 & I2C_SR1_BTF));
 
-
-	/* Wait until STOP flag is set(detected) */
-	while ( (I2C1->SR1 & I2C_SR1_STOPF) == 0 );
+	/* Wait until STOP flag is (detected) */
+	while ( (i2cxManager->Instance->SR1 & I2C_SR1_STOPF) == 0 );
 
 
 	// //clear all the flags to prepare for next Receive
-	// I2C1->SR1 = 0x0000;
+	// i2cxManager->Instance->SR1 = 0x0000;
 	// /* Clear STOP flag */
-	// while ((I2C1->SR1 & I2C_SR1_STOPF) != 0 )
+	// while ((i2cxManager->Instance->SR1 & I2C_SR1_STOPF) != 0 )
+	/* Clear STOP flag */
 	{
 		volatile uint32_t tmpreg = 0x00U;
-		tmpreg = I2C1->SR1;
-		I2C1->CR1 = I2C_CR1_PE;
+		tmpreg = i2cxManager->Instance->SR1;
+		i2cxManager->Instance->CR1 = I2C_CR1_PE;
 		(void)tmpreg;
 	}
 
@@ -439,7 +598,12 @@ void I2C_Slave_Receive(uint8 I2Cmodule, uint8_t *pData, uint8_t length){
 
 
 	/* Disable Address Acknowledge */
-    CLEAR_BIT(I2C1->CR1, I2C_CR1_ACK_Pos);
+    i2cxManager->Instance->CR1 &= ~I2C_CR1_ACK;
+
+	i2cxManager->State = MCAL_I2C_STATE_READY;
+    i2cxManager->Mode = MCAL_I2C_MODE_NONE;
+
+	return MCAL_OK;
 }
 
 
@@ -463,10 +627,10 @@ void I2C_start(void)
 
 
 	//generate start
-	SET_BIT(I2C1->CR1, I2C_CR1_START_Pos);
+	SET_BIT(i2cxManager->Instance->CR1, I2C_CR1_START_Pos);
 
 	//wait until its really generated (افضل واقف طول ما هو بصفر)
-	while((( I2C1->SR1 & I2C_SR1_SB) >> I2C_SR1_SB_Pos) == 0);
+	while((( i2cxManager->Instance->SR1 & I2C_SR1_SB) >> I2C_SR1_SB_Pos) == 0);
 }
 void I2C_stop(void)
 {
@@ -479,41 +643,41 @@ void I2C_stop(void)
 
 
 	/* Generate Stop */
-    SET_BIT(I2C1->CR1, I2C_CR1_STOP_Pos);
+    SET_BIT(i2cxManager->Instance->CR1, I2C_CR1_STOP_Pos);
 }
 // Function to send data over I2C
 void I2C_SendData(uint8_t address, uint8_t* data, uint8_t length) {
     // Wait until I2C is not busy
-    while (I2C1->SR2 & I2C_SR2_BUSY);
+    while (i2cxManager->Instance->SR2 & I2C_SR2_BUSY);
 
     // Send start condition
-    I2C1->CR1 |= I2C_CR1_START;
+    i2cxManager->Instance->CR1 |= I2C_CR1_START;
 
     // Wait until start condition is sent
-    while (!(I2C1->SR1 & I2C_SR1_SB));
+    while (!(i2cxManager->Instance->SR1 & I2C_SR1_SB));
 
     // Send address with write bit
-    I2C1->DR = address << 1;
+    i2cxManager->Instance->DR = address << 1;
 
     // Wait until address is sent
-    while (!(I2C1->SR1 & I2C_SR1_ADDR));
+    while (!(i2cxManager->Instance->SR1 & I2C_SR1_ADDR));
 
     // Clear ADDR flag
-    (void)I2C1->SR2;
+    (void)i2cxManager->Instance->SR2;
 
     // Send data
     for (uint8_t i = 0; i < length; i++) {
         // Wait until data register is empty
-        while (!(I2C1->SR1 & I2C_SR1_TXE));
+        while (!(i2cxManager->Instance->SR1 & I2C_SR1_TXE));
         // Send data
-        I2C1->DR = data[i];
+        i2cxManager->Instance->DR = data[i];
     }
 
     // Wait until all data is transmitted
-    while (!(I2C1->SR1 & I2C_SR1_BTF));
+    while (!(i2cxManager->Instance->SR1 & I2C_SR1_BTF));
 
     // Send stop condition
-    I2C1->CR1 |= I2C_CR1_STOP;
+    i2cxManager->Instance->CR1 |= I2C_CR1_STOP;
 }
 
 

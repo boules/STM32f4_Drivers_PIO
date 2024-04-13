@@ -13,7 +13,7 @@ typedef struct
 	uint32	CCR;        /*!< I2C Clock control register, Address offset: 0x1C */
 	uint32	TRISE;      /*!< I2C TRISE register,         Address offset: 0x20 */
 	uint32	FLTR;       /*!< I2C FLTR register,          Address offset: 0x24 */
-} I2C_TypeDef;
+} I2C_RegStruct;
 
 
 
@@ -25,9 +25,9 @@ typedef struct
 #define I2C2_BASE             (APB1PERIPH_BASE + 0x5800UL)
 #define I2C3_BASE             (APB1PERIPH_BASE + 0x5C00UL)
 
-#define I2C1                ((I2C_TypeDef *) I2C1_BASE)
-#define I2C2                ((I2C_TypeDef *) I2C2_BASE)
-#define I2C3                ((I2C_TypeDef *) I2C3_BASE)
+#define I2C1                ((I2C_RegStruct *) I2C1_BASE)
+#define I2C2                ((I2C_RegStruct *) I2C2_BASE)
+#define I2C3                ((I2C_RegStruct *) I2C3_BASE)
 
 
 
@@ -61,6 +61,34 @@ typedef struct
 
 
 
+typedef enum
+{
+  MCAL_I2C_STATE_RESET             = 0x00U,   /*!< Peripheral is not yet Initialized         */
+  MCAL_I2C_STATE_READY             = 0x20U,   /*!< Peripheral Initialized and ready for use  */
+  MCAL_I2C_STATE_BUSY              = 0x24U,   /*!< An internal process is ongoing            */
+  MCAL_I2C_STATE_BUSY_TX           = 0x21U,   /*!< Data Transmission process is ongoing      */
+  MCAL_I2C_STATE_BUSY_RX           = 0x22U,   /*!< Data Reception process is ongoing         */
+  MCAL_I2C_STATE_LISTEN            = 0x28U,   /*!< Address Listen Mode is ongoing            */
+  MCAL_I2C_STATE_BUSY_TX_LISTEN    = 0x29U,   /*!< Address Listen Mode and Data Transmission
+                                                 process is ongoing                         */
+  MCAL_I2C_STATE_BUSY_RX_LISTEN    = 0x2AU,   /*!< Address Listen Mode and Data Reception
+                                                 process is ongoing                         */
+  MCAL_I2C_STATE_ABORT             = 0x60U,   /*!< Abort user request ongoing                */
+  MCAL_I2C_STATE_TIMEOUT           = 0xA0U,   /*!< Timeout state                             */
+  MCAL_I2C_STATE_ERROR             = 0xE0U    /*!< Error                                     */
+
+} HAL_I2C_StateTypeDef;
+
+#define MCAL_I2C_ERROR_NONE              0x00000000U    /*!< No error              */
+#define MCAL_I2C_ERROR_BERR              0x00000001U    /*!< BERR error            */
+#define MCAL_I2C_ERROR_ARLO              0x00000002U    /*!< ARLO error            */
+#define MCAL_I2C_ERROR_AF                0x00000004U    /*!< AF error              */
+#define MCAL_I2C_ERROR_OVR               0x00000008U    /*!< OVR error             */
+#define MCAL_I2C_ERROR_DMA               0x00000010U    /*!< DMA transfer error    */
+#define MCAL_I2C_ERROR_TIMEOUT           0x00000020U    /*!< Timeout Error         */
+#define MCAL_I2C_ERROR_SIZE              0x00000040U    /*!< Size Management error */
+#define MCAL_I2C_ERROR_DMA_PARAM         0x00000080U    /*!< DMA Parameter Error   */
+#define MCAL_I2C_WRONG_START             0x00000200U    /*!< Wrong start Error     */
 
 
 /******************************************************************************/

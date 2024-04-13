@@ -1,6 +1,5 @@
 
 #include "platform_types.h"
-#include <stdint.h>
 
 
 typedef enum
@@ -35,16 +34,16 @@ typedef struct
 //   uint32_t NoStretchMode;    /*!< Specifies if nostretch mode is selected.
 //                                   This parameter can be a value of @ref I2C_nostretch_mode */
 
-} I2C_InitTypeDef;
+} I2C_InitStruct;
 
 
 
 typedef enum
 {
-  HAL_I2C_MODE_NONE               = 0x00U,   /*!< No I2C communication on going             */
-  HAL_I2C_MODE_MASTER             = 0x10U,   /*!< I2C communication is in Master Mode       */
-  HAL_I2C_MODE_SLAVE              = 0x20U,   /*!< I2C communication is in Slave Mode        */
-  HAL_I2C_MODE_MEM                = 0x40U    /*!< I2C communication is in Memory Mode       */
+  MCAL_I2C_MODE_NONE               = 0x00U,   /*!< No I2C communication on going             */
+  MCAL_I2C_MODE_MASTER             = 0x10U,   /*!< I2C communication is in Master Mode       */
+  MCAL_I2C_MODE_SLAVE              = 0x20U,   /*!< I2C communication is in Slave Mode        */
+  MCAL_I2C_MODE_MEM                = 0x40U    /*!< I2C communication is in Memory Mode       */
 
 } HAL_I2C_ModeTypeDef;
 
@@ -55,40 +54,40 @@ typedef enum
 
 
 /***0*/
-// typedef struct
-// {
-//   I2C_TypeDef                *Instance;      /*!< I2C registers base address               */
+typedef struct
+{
+  I2C_RegStruct            *Instance;      /*!< I2C registers base address               */
 
-//   I2C_InitTypeDef            Init;           /*!< I2C communication parameters             */
+  I2C_InitStruct           Init;           /*!< I2C communication parameters             */
 
-//   uint8                    *pBuffPtr;      /*!< Pointer to I2C transfer buffer           */
+  uint8                    *pBuffPtr;      /*!< Pointer to I2C transfer buffer           */
 
-//   uint16                   XferSize;       /*!< I2C transfer size                        */
+  uint16                   XferSize;       /*!< I2C transfer size                        */
 
-//   __IO uint16              XferCount;      /*!< I2C transfer counter                     */
+  __IO uint16              XferCount;      /*!< I2C transfer counter                     */
 
-//   __IO uint32              XferOptions;    /*!< I2C transfer options                     */
+  __IO uint32              XferOptions;    /*!< I2C transfer options                     */
 
-//   __IO uint32              PreviousState;  /*!< I2C communication Previous state and mode
-//                                                   context for internal usage               */
+  __IO uint32              PreviousState;  /*!< I2C communication Previous state and mode
+                                                  context for internal usage               */
 
 //   HAL_LockTypeDef            Lock;           /*!< I2C locking object                       */
 
-//   __IO HAL_I2C_StateTypeDef  State;          /*!< I2C communication state                  */
+  __IO HAL_I2C_StateTypeDef  State;          /*!< I2C communication state                  */
 
-//   __IO HAL_I2C_ModeTypeDef   Mode;           /*!< I2C communication mode                   */
+  __IO HAL_I2C_ModeTypeDef   Mode;           /*!< I2C communication mode                   */
 
-//   __IO uint32_t              ErrorCode;      /*!< I2C Error code                           */
+  __IO uint32_t              ErrorCode;      /*!< I2C Error code                           */
 
-//   __IO uint32_t              Devaddress;     /*!< I2C Target device address                */
+  __IO uint32_t              Devaddress;     /*!< I2C Target device address                */
 
-//   __IO uint32_t              Memaddress;     /*!< I2C Target memory address                */
+  __IO uint32_t              Memaddress;     /*!< I2C Target memory address                */
 
-//   __IO uint32_t              MemaddSize;     /*!< I2C Target memory address  size          */
+  __IO uint32_t              MemaddSize;     /*!< I2C Target memory address  size          */
 
-//   __IO uint32_t              EventCount;     /*!< I2C Event counter                        */
+  __IO uint32_t              EventCount;     /*!< I2C Event counter                        */
 
-// } I2C_HandleTypeDef;
+} I2C_ManagerStruct;
 /*****/
 
 
@@ -106,9 +105,13 @@ typedef enum
 
 
 
-void I2C_Init(uint8 I2Cmodule, I2C_InitTypeDef* configPtr);
-void I2C_Master_Transmit(uint8 I2Cmodule, uint16 DevAddress, uint8 *pData, uint8 length);
-void I2C_Slave_Receive(uint8 I2Cmodule, uint8 *pData, uint8 length);
+MCALStatus_t I2C_Init(I2C_ManagerStruct* i2cxManager);
+MCALStatus_t I2C_Master_Transmit(I2C_ManagerStruct* i2cxManager, uint16 DevAddress, uint8 *pData, uint8 length);
+MCALStatus_t I2C_Slave_Receive(I2C_ManagerStruct* i2cxManager, uint8 *pData, uint8 length);
+
+
+MCALStatus_t I2C_Master_Receive(I2C_ManagerStruct* i2cxManager, uint16 DevAddress, uint8 *pData, uint8 length);
+
 
 // void I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16 DevAddress, uint8 *pData, uint16 Size, uint32 Timeout);
 // void I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16 DevAddress, uint8 *pData, uint16 Size, uint32 Timeout);
