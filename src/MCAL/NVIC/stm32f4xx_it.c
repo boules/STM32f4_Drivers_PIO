@@ -61,6 +61,7 @@
 /* External variables --------------------------------------------------------*/
 extern USART_ManagerStruct usart1Manager;
 extern DMA_HandleTypeDef dma2Manager_stream2_usart1_rx;
+extern DMA_HandleTypeDef dma2Manager_stream7_usart1_tx;
 
 // extern DMA_HandleTypeDef hdma_usart1_rx;
 // extern DMA_HandleTypeDef hdma_usart1_tx;
@@ -225,13 +226,13 @@ void USART1_IRQHandler(void)
   */
 void DMA2_Stream2_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
+	/* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
 
-  /* USER CODE END DMA2_Stream2_IRQn 0 */
-  MCAL_DMA_IRQHandler(&dma2Manager_stream2_usart1_rx);
-  /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
+	/* USER CODE END DMA2_Stream2_IRQn 0 */
+	MCAL_DMA_IRQHandler(&dma2Manager_stream2_usart1_rx);
+	/* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
 
-  /* USER CODE END DMA2_Stream2_IRQn 1 */
+	/* USER CODE END DMA2_Stream2_IRQn 1 */
 }
 
 /**
@@ -239,13 +240,14 @@ void DMA2_Stream2_IRQHandler(void)
   */
 void DMA2_Stream7_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA2_Stream7_IRQn 0 */
+	/* USER CODE BEGIN DMA2_Stream7_IRQn 0 */
 
-  /* USER CODE END DMA2_Stream7_IRQn 0 */
-//   MCAL_DMA_IRQHandler(&hdma_usart1_tx);
-  /* USER CODE BEGIN DMA2_Stream7_IRQn 1 */
+	/* USER CODE END DMA2_Stream7_IRQn 0 */
+	MCAL_DMA_IRQHandler(&dma2Manager_stream7_usart1_tx);
 
-  /* USER CODE END DMA2_Stream7_IRQn 1 */
+	/* USER CODE BEGIN DMA2_Stream7_IRQn 1 */
+
+	/* USER CODE END DMA2_Stream7_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

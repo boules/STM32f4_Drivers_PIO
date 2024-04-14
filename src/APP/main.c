@@ -49,6 +49,7 @@ extern USART_InitStruct UsartConfigurationSet;
 //------------managers & handlers----------
 extern USART_ManagerStruct usart1Manager;
 extern DMA_HandleTypeDef dma2Manager_stream2_usart1_rx;
+extern DMA_HandleTypeDef dma2Manager_stream7_usart1_tx;
 // extern DMA_HandleTypeDef dma2Manager_stream0_memtomem;
 
 /* USER CODE END EV */
@@ -64,9 +65,9 @@ int main(void)
 	Port_Init(&Port_pinConfigurationSet);
 	USART_Init(&usart1Manager);
 	// I2C_Init(1, &I2cConfigurationSet);
-	// DMA_Init(&dma2Manager_stream2_usart1_rx);
 	// DMA_Init(&dma2Manager_stream0_memtomem);
 	DMA_Init(&dma2Manager_stream2_usart1_rx);
+	DMA_Init(&dma2Manager_stream7_usart1_tx);
 
 
 
@@ -83,10 +84,11 @@ int main(void)
 
 
 
-	volatile uint8 variable1[2] = {'b', 'o'};
-	volatile uint8 variable2[2] = {'f', 'a'};
+	volatile uint8 variable1[6] = {'b', 'o', 'u', 'l', 'e', 's'};
+	volatile uint8 variable2[6] = {'f', 'a', 'd', 'y', 'm', 'o'};
 
-	USART_Receive_DMA(&usart1Manager, &variable1, 2);
+	// USART_Receive_DMA(&usart1Manager, &variable1, 6);
+	USART_Transmit_DMA(&usart1Manager, &variable2, 6);
 
 
 
@@ -98,7 +100,27 @@ int main(void)
 					if (variable1[1] == variable2[1]){
 						// success 1
 						while(1){
+							if (variable1[2] == variable2[2]){
+								// success 1
+								while(1){
+									if (variable1[3] == variable2[3]){
+										// success 1
+										while(1){
+											if (variable1[4] == variable2[4]){
+												// success 1
+												while(1){
+													if (variable1[5] == variable2[5]){
+														// success 1
+														while(1){
 
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
 						}
 					}
 			}

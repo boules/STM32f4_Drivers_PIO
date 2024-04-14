@@ -421,8 +421,12 @@ MCALStatus_t USART_Transmit_DMA(USART_ManagerStruct *huart, const uint8_t *pData
 		in the UART CR3 register */
 	ATOMIC_SET_BIT(huart->Instance->CR3, USART_CR3_DMAT);
 
-	while ((huart->Instance->SR & USART_SR_TXE) == 0);
-	huart->Instance->DR = *(uint8*)pData;
+	/* Send the first Byte of the dma to start the dma */
+	if ((huart->Instance->SR & USART_SR_TXE)){
+		huart->Instance->DR = *(uint8*)pData;
+	}else {
+		return MCAL_ERROR;
+	}
 
 	return MCAL_OK;
 }

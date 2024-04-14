@@ -252,6 +252,7 @@ void DMA_Init(DMA_HandleTypeDef *streamManager)
 
 
 /*---------------------------------------------- DMA Polling functions ----------------------------------------------*/
+/* start without interrupts is for mem to mem */
 void DMA_start(DMA_HandleTypeDef *streamManager, uint32 SrcAddress, uint32 DstAddress, uint32 DataLength)
 {
 

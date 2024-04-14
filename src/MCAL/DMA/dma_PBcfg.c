@@ -43,24 +43,25 @@ DMA_HandleTypeDef dma2Manager_stream2_usart1_rx={
 	
 };
 
-// /* USART1_TX Init */
-// DMA_HandleTypeDef dma2Manager_stream7_usart1_tx={
-// 	.Instance = DMA2_Stream7,
-// 	.Init ={
-// 		.Channel = DMA_CHANNEL_4,
-// 		.Direction = DMA_MEMORY_TO_PERIPH,
-// 		.PeriphInc 	= DMA_PINC_DISABLE,							//prephiral increment (disable because usart has 1 Data Reg so no need to inc)
-// 		.MemInc 	= DMA_MINC_ENABLE,							//memory increment  (enable because we need to increment in memory)
-// 		.PeriphDataAlignment = DMA_PDATAALIGN_BYTE,		//Data width options are Byte, HalfWord, Word
-// 		.MemDataAlignment = DMA_MDATAALIGN_BYTE,		//Data width options are Byte, HalfWord, Word
-// 		.Mode = DMA_NORMAL,				//options are Normal and Circular
-// 		.Priority = DMA_PRIORITY_LOW,		//low, medium,high, very high
-// 		.FIFOMode = DMA_FIFOMODE_DISABLE		//FIFO disable and enable
+/* USART1_TX Init */
+DMA_HandleTypeDef dma2Manager_stream7_usart1_tx={
+	.Instance = DMA2_Stream7,
+	.Init ={
+		.Channel = DMA_CHANNEL_4,
+		.Direction = DMA_MEMORY_TO_PERIPH,
+		.PeriphInc 	= DMA_PINC_DISABLE,							//prephiral increment (disable because usart has 1 Data Reg so no need to inc)
+		.MemInc 	= DMA_MINC_ENABLE,							//memory increment  (enable because we need to increment in memory)
+		.PeriphDataAlignment = DMA_PDATAALIGN_BYTE,		//Data width options are Byte, HalfWord, Word
+		.MemDataAlignment = DMA_MDATAALIGN_BYTE,		//Data width options are Byte, HalfWord, Word
+		.Mode = DMA_NORMAL,				//options are Normal and Circular
+		.Priority = DMA_PRIORITY_LOW,		//low, medium,high, very high
+		.FIFOMode = DMA_FIFOMODE_DISABLE		//FIFO disable and enable
 
-// 	},
-// 	.State = HAL_DMA_STATE_RESET
+	},
+	.State = HAL_DMA_STATE_RESET,
+	.Parent = &usart1Manager
 
-// };
+};
 
 
   
