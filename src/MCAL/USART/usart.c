@@ -412,7 +412,7 @@ MCALStatus_t USART_Transmit_DMA(USART_ManagerStruct *huart, const uint8_t *pData
 	// huart->hdmatx->XferAbortCallback = NULL;
 
 	/* Enable the UART transmit DMA stream */
-	DMA_Start_IT(huart->hdmatx, (uint32)pData, (uint32_t)&huart->Instance->DR, Size);
+	DMA_Start_IT(huart->hdmatx, (uint32)((uint8*)pData+1), (uint32_t)&huart->Instance->DR, Size-1);
 
 	/* Clear the TC flag in the USART SR register by writing 0 to it */
 	(huart)->Instance->SR = ~(UART_FLAG_TC);
@@ -420,6 +420,9 @@ MCALStatus_t USART_Transmit_DMA(USART_ManagerStruct *huart, const uint8_t *pData
 	/* Enable the DMA transfer for transmit request by setting the DMAT bit
 		in the UART CR3 register */
 	ATOMIC_SET_BIT(huart->Instance->CR3, USART_CR3_DMAT);
+
+	while ((huart->Instance->SR & USART_SR_TXE) == 0);
+	huart->Instance->DR = *(uint8*)pData;
 
 	return MCAL_OK;
 }
