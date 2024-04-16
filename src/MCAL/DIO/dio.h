@@ -18,7 +18,7 @@ typedef enum
 void DIO_setPin(uint8 portNum, uint8 pinNum);
 void DIO_clearPin(uint8 portNum, uint8 pinNum);
 void DIO_togglePin(uint8 portNum, uint8 pinNum);
-
+uint8 DIO_readPin(uint8 portNum, uint8 pinNum);
 
 void DIO_setupPinDirection(uint8 portNum, uint8 pinNum, GPIO_PinDirectionType direction );
 void DIO_setupChannelDirection_offset(uint8 portNum, uint8 numOfPins, uint8 offset, GPIO_PinDirectionType direction);
