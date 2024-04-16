@@ -6,7 +6,7 @@
  *
  * Description: Header file for the Keypad driver
  *
- * Author: Mohamed Tarek
+ * Author: 
  *
  *******************************************************************************/
 
@@ -14,24 +14,9 @@
 #define KEYPAD_H_
 
 #include "std_types.h"
+#include "port.h"
 
-/*******************************************************************************
- *                                Definitions                                  *
- *******************************************************************************/
 
-/* Keypad configurations for number of rows and columns */
-#define KEYPAD_NUM_COLS                  3
-#define KEYPAD_NUM_ROWS                  4
-
-/* Keypad Port Configurations */
-#define KEYPAD_PORT_ID                   PORTB_ID
-
-#define KEYPAD_FIRST_ROW_PIN_ID           PIN0_ID
-#define KEYPAD_FIRST_COLUMN_PIN_ID        PIN4_ID
-
-/* Keypad button logic configurations */
-#define KEYPAD_BUTTON_PRESSED            LOGIC_LOW
-#define KEYPAD_BUTTON_RELEASED           LOGIC_HIGH
 
 /*******************************************************************************
  *                      Functions Prototypes                                   *
