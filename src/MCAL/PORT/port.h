@@ -91,7 +91,21 @@ typedef struct Port_ConfigPinStruct{
 #define  GPIO_SPEED_FREQ_MEDIUM      0x00000001U  /*!< range 12,5 MHz to 50 MHz, please refer to the product datasheet */
 #define  GPIO_SPEED_FREQ_HIGH        0x00000002U  /*!< range 25 MHz to 100 MHz, please refer to the product datasheet  */
 #define  GPIO_SPEED_FREQ_VERY_HIGH   0x00000003U  /*!< range 50 MHz to 200 MHz, please refer to the product datasheet  */
-
+typedef enum{
+  OType_PP = 0x00,		/*!< Push-Pull*/
+  OType_OD = 0x01		/*!< Open Drain*/
+}GPIOOType_TypeDef;
+typedef enum{
+  GPIO_Speed_2MHz   = 0x00, /*!< Low speed */
+  GPIO_Speed_25MHz  = 0x01, /*!< Medium speed */
+  GPIO_Speed_50MHz  = 0x02, /*!< Fast speed */
+  GPIO_Speed_100MHz = 0x03  /*!< High speed on 30 pF (80 MHz Output max speed on 15 pF) */
+}GPIOSpeed_TypeDef;
+typedef enum {
+  No_Pull = 0x00,
+  Pull_Up     = 0x01,
+  Pull_Down   = 0x02
+}GPIOPuPd_TypeDef;
 
 
 
