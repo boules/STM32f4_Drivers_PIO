@@ -29,7 +29,8 @@
 #define BIT_IS_CLEAR(REG, BITNUM)			(((REG) & ( 1<<(BITNUM))) == 0)
 
 //Get
-#define GET_BIT(REG, BITNUM)				( ( (REG) & (1<<(BITNUM)) ) >> (BITNUM)  )
+#define GET_BIT(REG, BITNUM)				(((REG) >> pinNum) & 0b001)
+
 
 
 /* Create Masks */
@@ -69,8 +70,8 @@ enum onesMask{
 #define CLEAR_BYMASK(REG, CLEARMASK)						((REG) &= ~(CLEARMASK));
 #define TOGGLE_BYMASK(REG, TOGGLEMASK) 						((REG) ^= (TOGGLEMASK))
 
-#define IS_BIT_SET(REG, BITMASK)         ((REG) & (BITMASK) != 0U)  /* Must have != to return 1 or 0 only  because if you checked it with 1 it will return flase */
-#define IS_BIT_CLR(REG, BITMASK)         (((REG) & (BITMASK)) == 0U)
+#define IS_BIT_SET_BYMASK(REG, BITMASK)         ((REG) & (BITMASK) != 0U)  /* Must have != to return 1 or 0 only  because if you checked it with 1 it will return flase */
+#define IS_BIT_CLR_BYMASK(REG, BITMASK)         (((REG) & (BITMASK)) == 0U)
 
 /********************************end***/
 
