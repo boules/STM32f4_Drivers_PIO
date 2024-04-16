@@ -66,10 +66,7 @@ uint8 DIO_readPin(uint8 portNum, uint8 pinNum){
 	getBaseAddress(portNum, &GPIOx_basePtr);
 
 	// return BIT_IS_SET(GPIOx_basePtr->IDR, pinNum);
-	// return (GPIOx_basePtr->IDR & (1<<pinNum)); /* msh 4a8ala msh 3arf leh..  commented to notice it later to not repeat */
-	uint32 temp = (1<<pinNum);
-	return (GPIOx_basePtr->IDR & temp);
-	// return ((GPIOx_basePtr->IDR >> pinNum) & 0b001);
+	return ((GPIOx_basePtr->IDR >> pinNum) & 0b001);
 }
 
 
