@@ -25,8 +25,8 @@
 #define TOGGLE_BIT(REG, BITNUM) 			((REG) ^= ( 1<<(BITNUM) ))
 
 //Condition
-#define BIT_IS_SET(REG, BITNUM)				((REG) & ( 1<<(BITNUM) ))
-#define BIT_IS_CLEAR(REG, BITNUM)			(!((REG) & ( 1<<(BITNUM) )))
+#define BIT_IS_SET(REG, BITNUM)				(((REG) & ( 1<<(BITNUM))) != 0) 			/* does not always work(FIXED) *//* must!= be there to return 1 only if true not any number */
+#define BIT_IS_CLEAR(REG, BITNUM)			(((REG) & ( 1<<(BITNUM))) == 0)
 
 //Get
 #define GET_BIT(REG, BITNUM)				( ( (REG) & (1<<(BITNUM)) ) >> (BITNUM)  )
@@ -69,7 +69,7 @@ enum onesMask{
 #define CLEAR_BYMASK(REG, CLEARMASK)						((REG) &= ~(CLEARMASK));
 #define TOGGLE_BYMASK(REG, TOGGLEMASK) 						((REG) ^= (TOGGLEMASK))
 
-#define IS_BIT_SET(REG, BITMASK)         ((REG) & (BITMASK))
+#define IS_BIT_SET(REG, BITMASK)         ((REG) & (BITMASK) != 0U)  /* Must have != to return 1 or 0 only  because if you checked it with 1 it will return flase */
 #define IS_BIT_CLR(REG, BITMASK)         (((REG) & (BITMASK)) == 0U)
 
 /********************************end***/
