@@ -35,6 +35,10 @@ typedef struct
   uint8 sw_patch_version;
 } Std_VersionInfoType;
 
+
+#define	LOGIC_LOW		0U
+#define	LOGIC_HIGH		1U
+
 #define STD_HIGH        0x01U       /* Standard HIGH */
 #define STD_LOW         0x00U       /* Standard LOW */
 
