@@ -29,6 +29,7 @@
 #include "lcd.h"
 #include "dma.h"
 #include "nvic.h"
+#include "keypad.h"
 
 
 /* Private defines ------------------------------------------------------------*/
@@ -82,8 +83,8 @@ int main(void)
 	LCD_displayStringRowColumn(1, 0, "Hoppa FADY");
 ///
 
-
-
+#define USART_TRANSMIT_DMA
+#ifndef USART_TRANSMIT_DMA
 	volatile uint8 variable1[6] = {'b', 'o', 'u', 'l', 'e', 's'};
 	volatile uint8 variable2[6] = {'f', 'a', 'd', 'y', 'm', 'o'};
 
@@ -126,6 +127,20 @@ int main(void)
 			}
 		}
 	}
+#endif
+	uint8 data = 0;
+	uint8 dataPrevious= 0;
+	while (1)
+	{
+		dataPrevious = data;
+		data = KEYPAD_getPressedKey();
+
+		if(data != dataPrevious){
+			USART_sendByte_polling(&usart1Manager, data);
+		}
+		
+	}
+	
 
 
 	return 0;
