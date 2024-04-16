@@ -91,7 +91,7 @@ void USART_sendByte_polling(USART_ManagerStruct *usartxManager, const uint8 data
 	 */
 
 	// stop while the TX line is full  (wait while the TXE flag is clear)
-	while (BIT_IS_CLEAR(usartxManager->Instance->SR, USART_SR_TXE_Pos))
+	while ((usartxManager->Instance->SR & USART_SR_TXE) == 0)
 	{
 	}
 
@@ -108,7 +108,7 @@ uint8 USART_recieveByte_polling(USART_ManagerStruct *usartxManager)
 	 */
 
 	// stop while the RX line is empty  (wait while the RXNE flag is clear)
-	while (BIT_IS_CLEAR(usartxManager->Instance->SR, USART_SR_RXNE_Pos))
+	while ((usartxManager->Instance->SR & USART_SR_RXNE) == 0)
 	{
 	}
 
@@ -421,7 +421,7 @@ MCALStatus_t USART_Transmit_DMA(USART_ManagerStruct *huart, const uint8_t *pData
 		in the UART CR3 register */
 	ATOMIC_SET_BIT(huart->Instance->CR3, USART_CR3_DMAT);
 
-	/* Send the first Byte of the dma to start the dma */
+	/* Send the first Byte of the dma to start the dma */ /* remember usart state must be ready */
 	if ((huart->Instance->SR & USART_SR_TXE)){
 		huart->Instance->DR = *(uint8*)pData;
 	}else {
