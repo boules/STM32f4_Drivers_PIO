@@ -8,15 +8,16 @@
 
 
 // For any internal configuration
+// Single Task schedular Data
 typedef struct{
-	Runnable_Struct *runnable_struct_ptr;
+	SCHED_InitStruct *Task;
 	uint32 remainTime_ms;//fadly ad eh w ttnafzzz
 
-}SchedTracker_Struct;
+}SCHED_TrackerStruct;
 
 
 
-SchedTracker_Struct schedTracker[MAX_SUPPORTED_TASKS];
+SCHED_TrackerStruct taskxTracker[MAX_SUPPORTED_TASKS];
 
 
 
@@ -36,24 +37,25 @@ void tickcb(void)
 	// STK_clearCountFlag();  الانتربت مش فارق معاه الفلاج
 }
 
-static void sched(void)
-{
+
+//This kernel like
+static void sched(void){
+	
 	uint32_t i;
-	for(i = 0; i < MAX_SUPPORTED_TASKS; i++)
-	{
+	for(i = 0; i < MAX_SUPPORTED_TASKS; i++){
 		// if task not initialized, calling cb will cause a crash as cb is null
-		if(schedTracker[i].runnable_struct_ptr && schedTracker[i].runnable_struct_ptr->runnableFunction)
+		if( (taskxTracker[i].Task != NULL_PTR) && (taskxTracker[i].Task->function !=  NULL_PTR) )
 		{	
 			
 
-			if (schedTracker[i].remainTime_ms == 0){
+			if (taskxTracker[i].remainTime_ms == 0){
 
-				schedTracker[i].runnable_struct_ptr->runnableFunction();
-				schedTracker[i].remainTime_ms = schedTracker[i].runnable_struct_ptr->periodicity;
+				taskxTracker[i].Task->function();
+				taskxTracker[i].remainTime_ms = taskxTracker[i].Task->periodicity;
 			} 
 			
 			// The next schedular will read that state
-			schedTracker[i].remainTime_ms -= TICK_TIME; // One ms passed
+			taskxTracker[i].remainTime_ms -= TICK_TIME; // One ms passed
 			
 		}
 
@@ -61,7 +63,10 @@ static void sched(void)
 
 	}
 }
-void sched_init( Runnable_Struct * runnablesArray)
+
+
+/* Setting and intializing all Sched component*/
+void sched_init( SCHED_InitStruct * runnablesArray)
 {
 	// init vars (if needed)
 	
@@ -70,8 +75,8 @@ void sched_init( Runnable_Struct * runnablesArray)
 
 	// seting the runnable configurations
 	for (uint32 i=0; i<MAX_SUPPORTED_TASKS; i++){
-		schedTracker[i].runnable_struct_ptr = &runnablesArray[i];
-		schedTracker[i].remainTime_ms = runnablesArray[i].ofset_ms;
+		taskxTracker[i].Task = &runnablesArray[i];
+		taskxTracker[i].remainTime_ms = runnablesArray[i].ofset_ms;
 
 	}
 
@@ -84,6 +89,7 @@ void sched_init( Runnable_Struct * runnablesArray)
 	
 }
 
+/* Strat Sched Ticking */
 void sched_start(void)
 {
 	Enable_Interrupts();
@@ -107,13 +113,19 @@ void sched_start(void)
 		
 	}
 }
+
+
+
+
+
+
 /*
-Res_t sched_registerrunnable(Runnable_Struct* r)
+Res_t sched_registerrunnable(SCHED_InitStruct* r)
 {
-	if(r && (schedTracker[r->priority].runnable == NULL))
+	if(r && (taskxTracker[r->priority].runnable == NULL))
 	{
-		schedTracker[r->priority].runnable = r;
-		schedTracker[r->priority].remainTime_ms = r->delayMS;
+		taskxTracker[r->priority].runnable = r;
+		taskxTracker[r->priority].remainTime_ms = r->delayMS;
 	}		
 }
 */

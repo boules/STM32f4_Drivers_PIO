@@ -18,7 +18,7 @@
 
 
 /****************typedefs******************/
-typedef void (*runnable) (void);
+typedef void (*FunPtr_t) (void);
 
 // for any configurations configurable by the user
 typedef struct
@@ -27,9 +27,9 @@ typedef struct
 	uint32 ofset_ms; // time until the task is first executed
 	uint32 periodicity; //frquency of the task
 	uint32 priority;
-	runnable runnableFunction;
+	FunPtr_t function;
 	
-}Runnable_Struct;
+}SCHED_InitStruct;
 
 
 
@@ -55,7 +55,7 @@ typedef struct
 /********************************************************************************************************/
 
 // To enable timers
-void sched_init( Runnable_Struct * runnablesArray);
+void sched_init( SCHED_InitStruct * runnablesArray);
 // all tasks must be created between the init and the start
 // Although our implementation will allow tasks to be run after starting sched
 void sched_start(void);
