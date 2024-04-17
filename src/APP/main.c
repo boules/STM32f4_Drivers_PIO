@@ -83,66 +83,11 @@ int main(void)
 	LCD_displayStringRowColumn(1, 0, "Hoppa FADY");
 ///
 
-#define USART_TRANSMIT_DMA
-#ifndef USART_TRANSMIT_DMA
-	volatile uint8 variable1[6] = {'b', 'o', 'u', 'l', 'e', 's'};
-	volatile uint8 variable2[6] = {'f', 'a', 'd', 'y', 'm', 'o'};
-
-	// USART_Receive_DMA(&usart1Manager, &variable1, 6);
-	USART_Transmit_DMA(&usart1Manager, &variable2, 6);
 
 
 
-	// while1
-	while (1){
-		if (variable1[0] == variable2[0]){
-			// success 0
-			while(1){
-					if (variable1[1] == variable2[1]){
-						// success 1
-						while(1){
-							if (variable1[2] == variable2[2]){
-								// success 1
-								while(1){
-									if (variable1[3] == variable2[3]){
-										// success 1
-										while(1){
-											if (variable1[4] == variable2[4]){
-												// success 1
-												while(1){
-													if (variable1[5] == variable2[5]){
-														// success 1
-														while(1){
 
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-			}
-		}
-	}
-#endif
-	uint8 data = 0;
-	uint8 dataPrevious= 0;
-	while (1)
-	{
-		dataPrevious = data;
-		data = KEYPAD_getPressedKey();
-
-		if(data != dataPrevious){
-			USART_sendByte_polling(&usart1Manager, data);
-		}
-		
-	}
-	
-
-
+	while (1);
 	return 0;
 }
 
@@ -215,5 +160,67 @@ int main(void)
 		{
 			
 		}
+	}
+#endif
+
+#define USART_TRANSMIT_DMA_TEST
+#ifndef USART_TRANSMIT_DMA_TEST
+	volatile uint8 variable1[6] = {'b', 'o', 'u', 'l', 'e', 's'};
+	volatile uint8 variable2[6] = {'f', 'a', 'd', 'y', 'm', 'o'};
+
+	// USART_Receive_DMA(&usart1Manager, &variable1, 6);
+	USART_Transmit_DMA(&usart1Manager, &variable2, 6);
+
+
+
+	// while1
+	while (1){
+		if (variable1[0] == variable2[0]){
+			// success 0
+			while(1){
+					if (variable1[1] == variable2[1]){
+						// success 1
+						while(1){
+							if (variable1[2] == variable2[2]){
+								// success 1
+								while(1){
+									if (variable1[3] == variable2[3]){
+										// success 1
+										while(1){
+											if (variable1[4] == variable2[4]){
+												// success 1
+												while(1){
+													if (variable1[5] == variable2[5]){
+														// success 1
+														while(1){
+
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+			}
+		}
+	}
+#endif
+
+#define KEYPAD_TEST
+#ifndef KEYPAD_TEST
+	uint8 data = 0;
+	uint8 dataPrevious= 0;
+	while (1)
+	{
+		dataPrevious = data;
+		data = KEYPAD_getPressedKey();
+
+		if(data != dataPrevious){
+			USART_sendByte_polling(&usart1Manager, data);
+		}
+		
 	}
 #endif
