@@ -4,6 +4,9 @@
 #include "led.h"
 
 /* User Defined LEDs */
+/**use macro defined in led.h
+ *LED_ID(PortNum, PinNum)
+*/
 
 /**
  * Enter your defined Leds here

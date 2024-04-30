@@ -3,6 +3,7 @@
 
 #include "dio.h"
 #include "port.h"
+#include "led_cfg.h"
 
 /* Led ID Mask */
 #define LED_ID(PortNum, PinNum)		(PortNum<<4 | PinNum)
