@@ -20,6 +20,8 @@ void STK_setCallBack(STK_CBFptr_t stkHandlerfunction);
 uint8 STK_isExpire();
 
 
+void STK_startITms_SetCBF(uint16 num_of_milliseconds, STK_CBFptr_t stkHandlerfunction);
+
 
 
 

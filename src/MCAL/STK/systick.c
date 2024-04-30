@@ -61,7 +61,7 @@ void STK_stop(){
 	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
 }
 
-
+/*for polling*/
 uint8 STK_isExpire(){
 
 	if ( ((SysTick->CTRL)& SysTick_CTRL_COUNTFLAG_Msk) ){
@@ -128,3 +128,25 @@ __STATIC_INLINE uint32_t SysTick_Config(uint32_t ticks)
 }
 
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
+/*****************************************************/
+/** User Defined Function*/
+void STK_startITms_SetCBF(uint16 num_of_milliseconds, STK_CBFptr_t stkHandlerfunction){
+
+	STK_setCallBack(stkHandlerfunction);
+	STK_stop();
+	STK_setTime_ms(num_of_milliseconds);
+	STK_enableInterupts();
+	STK_start();
+}

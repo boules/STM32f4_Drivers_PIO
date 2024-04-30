@@ -85,6 +85,7 @@ void sched_init( SCHED_InitStruct * runnablesArray)
 	// systick configure
 	STK_setTime_ms (TICK_TIME);
 	STK_setCallBack(tickcb);
+	STK_enableInterupts();
 	//we start systick at sched_state
 	
 }

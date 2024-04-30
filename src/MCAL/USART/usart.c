@@ -342,7 +342,8 @@ static MCALStatus_t USART_dataRecieve_IT(USART_ManagerStruct *usartxManager)
 	}
 	else
 	{
-		return MCAL_BUSY;
+		return MCAL_ERROR;
+		/* the rx state is ought to be busy when the uart in work mode else error (not particulary an error) */
 	}
 }
 static void USART_EndRxTransfer(USART_ManagerStruct *usartxManager)
@@ -523,6 +524,11 @@ void MCAL_USART_IRQHandler(USART_ManagerStruct *usartxManager)
 		if (((isrflags & USART_SR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET))
 		{
 			USART_dataRecieve_IT(usartxManager);
+
+			// if(usartxManager->RxXferCount == 0){
+			// 	//Finish CALL BACK FUNCTION
+			// }
+
 			return; // no error and recieve mode receives
 		}
 	}
