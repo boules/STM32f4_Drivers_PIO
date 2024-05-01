@@ -35,6 +35,15 @@ typedef struct
   uint8 sw_patch_version;
 } Std_VersionInfoType;
 
+typedef enum {
+	ALL_PROCESSES_FINISHED = 0,
+	MINI_PROCESS_FINISHED = 0,
+	IN_PROCESS = 1
+}ProcessState_t;
+
+// typedef uint8 ProcessState_t;
+// #define IN_PROCESS					1U
+// #define ALL_PROCESSES_FINISHED		0U
 
 #define	LOGIC_LOW		0U
 #define	LOGIC_HIGH		1U
