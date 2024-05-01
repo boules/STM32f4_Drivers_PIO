@@ -21,7 +21,7 @@
 
 #include "stm32f4xx_it.h"
 
-#include "usart.h"
+// #include "usart.h"
 
 
 /* Private includes ----------------------------------------------------------*/
@@ -59,9 +59,9 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern USART_ManagerStruct usart1Manager;
-extern DMA_HandleTypeDef dma2Manager_stream2_usart1_rx;
-extern DMA_HandleTypeDef dma2Manager_stream7_usart1_tx;
+// extern USART_ManagerStruct usart1Manager;
+// extern DMA_HandleTypeDef dma2Manager_stream2_usart1_rx;
+// extern DMA_HandleTypeDef dma2Manager_stream7_usart1_tx;
 
 // extern DMA_HandleTypeDef hdma_usart1_rx;
 // extern DMA_HandleTypeDef hdma_usart1_tx;
@@ -215,7 +215,7 @@ void USART1_IRQHandler(void)
   /* USER CODE BEGIN USART1_IRQn 0 */
 
   /* USER CODE END USART1_IRQn 0 */
-  MCAL_USART_IRQHandler(&usart1Manager);
+//   MCAL_USART_IRQHandler(&usart1Manager);
   /* USER CODE BEGIN USART1_IRQn 1 */
 
   /* USER CODE END USART1_IRQn 1 */
@@ -229,7 +229,7 @@ void DMA2_Stream2_IRQHandler(void)
 	/* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
 
 	/* USER CODE END DMA2_Stream2_IRQn 0 */
-	MCAL_DMA_IRQHandler(&dma2Manager_stream2_usart1_rx);
+	// MCAL_DMA_IRQHandler(&dma2Manager_stream2_usart1_rx);
 	/* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
 
 	/* USER CODE END DMA2_Stream2_IRQn 1 */
@@ -243,7 +243,7 @@ void DMA2_Stream7_IRQHandler(void)
 	/* USER CODE BEGIN DMA2_Stream7_IRQn 0 */
 
 	/* USER CODE END DMA2_Stream7_IRQn 0 */
-	MCAL_DMA_IRQHandler(&dma2Manager_stream7_usart1_tx);
+	// MCAL_DMA_IRQHandler(&dma2Manager_stream7_usart1_tx);
 
 	/* USER CODE BEGIN DMA2_Stream7_IRQn 1 */
 

@@ -34,12 +34,12 @@ const SCHED_InitStruct runnablesSet [MAX_SUPPORTED_TASKS] = {
 		.function = &Red_Led_Task
 	},
 
-	// [3] = {
-	// 	.name = "LCD_Main_Task",
-	// 	.ofset_ms = 0000,
-	// 	.periodicity = 50,
-	// 	.priority = 0,
-	// 	.function = &LCD_Main_Task
-	// },
+	[3] = {
+		.name = "LCD_Main_Task",
+		.ofset_ms = 0000,
+		.periodicity = 4,
+		.priority = 0,
+		.function = &LCD_Main_Task
+	},
 
 };

@@ -10,10 +10,10 @@
 
 
 /*****************defines******************/
-#define MAX_SUPPORTED_TASKS 3
+#define MAX_SUPPORTED_TASKS 4
 
 // Tick_Time is the shortest time per interrupt
-#define TICK_TIME   500 //1s 0.5s
+#define TICK_TIME   4 //1s 0.5s
 
 
 
