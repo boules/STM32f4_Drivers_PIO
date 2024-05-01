@@ -46,6 +46,8 @@ typedef signed long long      sint64;               /*      ~ -9(10^18) .. ~ +9(
 typedef float                 float32;
 typedef double                float64;
 
+/* Pointer to Function */
+typedef void (*PtrFun_t) (void);
 
 
 #define     __O     volatile             /*!< Defines 'write only' permissions */
