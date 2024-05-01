@@ -1,5 +1,5 @@
-#define MAIN_1
-#ifndef MAIN_1
+// #define MAIN_1
+#ifdef MAIN_1
 #include "Os.h"
 
 int main(){

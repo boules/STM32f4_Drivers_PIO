@@ -1,5 +1,5 @@
-#define MAIN_2
-#ifndef MAIN_2
+// #define MAIN_2
+#ifdef MAIN_2
 
 /* USER CODE BEGIN Header */
 /**

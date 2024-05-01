@@ -1,3 +1,6 @@
+#ifndef I2C_REGS_H
+#define I2C_REGS_H
+
 #include "platform_types.h"
 
 
@@ -312,3 +315,5 @@ typedef enum
 #define I2C_FLTR_ANOFF_Pos        (4U)
 #define I2C_FLTR_ANOFF_Msk        (0x1UL << I2C_FLTR_ANOFF_Pos)                 /*!< 0x00000010 */
 #define I2C_FLTR_ANOFF            I2C_FLTR_ANOFF_Msk                           /*!<Analog Noise Filter OFF */
+
+#endif /* I2C_REGS_H */

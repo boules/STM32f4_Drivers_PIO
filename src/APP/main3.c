@@ -1,5 +1,5 @@
-//#define MAIN_3
-#ifndef MAIN_3
+#define MAIN_3
+#ifdef MAIN_3
 
 #include "sched.h"
 
@@ -11,6 +11,8 @@ int main(){
 	/* Start sched */
     SCHED_start();
 
+
+	while (1);
 	return 0;
 }
 
