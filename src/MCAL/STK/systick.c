@@ -29,6 +29,8 @@ void STK_setTime_ms(uint16 num_of_milliseconds){
 
 	// recheck that the prescaler /8 is enabled  when ==0 prescale/8 is enabled
 	SysTick->CTRL &= ~SysTick_CTRL_CLKSOURCE_Msk;
+	
+	// SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk; // no prescaler
 
 	/* if max input which is 8388   the maxload == 16'776'216  which is less than 0x00ffffff the max value of the register */
 	uint32 loadValue = ((num_of_milliseconds*2000)-1) & 0x00ffFFff;
@@ -39,15 +41,13 @@ void STK_setTime_ms(uint16 num_of_milliseconds){
 void STK_enableInterupts(){
 	SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
 }
-
 void STK_disableInterupts(){
 	SysTick->CTRL &= ~SysTick_CTRL_TICKINT_Msk;
 }
 
-void STK_clearCountFlag(){
-	SysTick->CTRL &= ~SysTick_CTRL_COUNTFLAG_Msk;
+void STK_stop(){
+	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
 }
-
 void STK_start(){
 	// clear the systick counter
 	SysTick->VAL =0;
@@ -56,10 +56,6 @@ void STK_start(){
 	SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
 }
 
-
-void STK_stop(){
-	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
-}
 
 /*for polling*/
 uint8 STK_isExpire(){
@@ -75,11 +71,16 @@ uint8 STK_isExpire(){
 
 } 
 
+//clear count flag
+// STK_clearCountFlag();  الانتربت مش فارق معاه الفلاج
+void STK_clearCountFlag(){
+	SysTick->CTRL &= ~SysTick_CTRL_COUNTFLAG_Msk;
+}
 
 
 
 
-
+/* for interrupts */
 STK_CBFptr_t g_callBackFunction = NULL_PTR;
 
 
@@ -149,4 +150,12 @@ void STK_startITms_SetCBF(uint16 num_of_milliseconds, STK_CBFptr_t stkHandlerfun
 	STK_setTime_ms(num_of_milliseconds);
 	STK_enableInterupts();
 	STK_start();
+}
+
+void STK_setIT_time_CBF(uint16 num_of_milliseconds, STK_CBFptr_t stkHandlerfunction){
+
+	STK_setCallBack(stkHandlerfunction);
+	STK_stop();
+	STK_setTime_ms(num_of_milliseconds);
+	STK_enableInterupts();
 }

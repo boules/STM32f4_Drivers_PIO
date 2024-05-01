@@ -21,6 +21,7 @@ uint8 STK_isExpire();
 
 
 void STK_startITms_SetCBF(uint16 num_of_milliseconds, STK_CBFptr_t stkHandlerfunction);
+void STK_setIT_time_CBF(uint16 num_of_milliseconds, STK_CBFptr_t stkHandlerfunction);
 
 
 
