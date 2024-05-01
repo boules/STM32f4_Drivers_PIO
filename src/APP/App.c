@@ -7,7 +7,7 @@
 // #include "systick.h"
 // #include "sched.h"
 #include "dio.h"
-#include "lcd.h"
+#include "lcd_bytasks.h"
 // #include "dma.h"
 // #include "nvic.h"
 // #include "keypad.h"
@@ -43,14 +43,14 @@ void Init_Task(void)
 	// LCD_init(); /* Initialize the LCD */
 
 // LCD NORMAL
-	LCD_init(); /* Initialize the LCD */
-	LCD_displayString("Welcome To LCD");
-	LCD_displayStringRowColumn(1, 0, "8 Bits Data Mode");
+	// LCD_init(); /* Initialize the LCD */
+	// LCD_displayString("Welcome To LCD");
+	// LCD_displayStringRowColumn(1, 0, "8 Bits Data Mode");
 
-	delay_ms(100);
-	LCD_clearScreen();
-	LCD_displayStringRowColumn(0, 0, "Hi, Boules");
-	LCD_displayStringRowColumn(1, 0, "Hoppa FADY");
+	// delay_ms(100);
+	// LCD_clearScreen();
+	// LCD_displayStringRowColumn(0, 0, "Hi, Boules");
+	// LCD_displayStringRowColumn(1, 0, "Hoppa FADY");
 ///
 }
 
@@ -66,4 +66,43 @@ void Yellow_Led_Task(void){
 
 void Red_Led_Task(void){
 	LED_toggle(RedLED);
+}
+
+void LCD_Main_Task(void){ //ProcessState_t
+
+	static uint8 TaskProcess;
+	switch(TaskProcess){
+		case 0:
+			/* Initialize the LCD */
+			if (LCD_init_TASK() == MINI_PROCESS_FINISHED){
+				TaskProcess++;
+			} else {
+				/* same process */
+			}
+			break;
+		case 1:
+			if (LCD_displayString_TASK("Welcome To LCD") == MINI_PROCESS_FINISHED){
+				TaskProcess++;
+			} else {
+				/* same process */
+			}
+			break;
+		
+		case 2:
+			if (LCD_displayStringRowColumn_TASK(1, 0, "8 Bits Data Mode") == MINI_PROCESS_FINISHED){
+				
+				/* TASK FINISHED SUCCESSFULLY */
+				TaskProcess++;
+
+			} else {
+				/* same process */
+			}
+			break;
+		
+		default:
+			/* TASK FINISHED SUCCESSFULLY */
+			/* do nothing */;
+	}
+
+
 }

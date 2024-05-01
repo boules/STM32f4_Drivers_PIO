@@ -1,5 +1,5 @@
-#define CANCEL_THIS_FILE
-#ifndef CANCEL_THIS_FILE
+#define MAIN_2
+#ifndef MAIN_2
 
 /* USER CODE BEGIN Header */
 /**
@@ -67,11 +67,11 @@ int main(void)
 
 /* Initialize all configured peripherals */
 	Port_Init(&Port_pinConfigurationSet);
-	USART_Init(&usart1Manager);
+	// USART_Init(&usart1Manager);
 	// I2C_Init(1, &I2cConfigurationSet);
 	// DMA_Init(&dma2Manager_stream0_memtomem);
-	DMA_Init(&dma2Manager_stream2_usart1_rx);
-	DMA_Init(&dma2Manager_stream7_usart1_tx);
+	// DMA_Init(&dma2Manager_stream2_usart1_rx);
+	// DMA_Init(&dma2Manager_stream7_usart1_tx);
 
 
 
@@ -95,23 +95,46 @@ int main(void)
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Templates */
 //USART Polling
-	/**
-	 *   data = USART_recieveByte_polling(&usart1Manager); // Receive Byte from Terminal1
-	 *   USART_sendByte_polling(&usart1Manager, data);
-	*/
+#define USART_POLLING_TEST
+#ifndef USART_POLLING_TEST
+	data = USART_recieveByte_polling(&usart1Manager); // Receive Byte from Terminal1
+	USART_sendByte_polling(&usart1Manager, data);
+#endif
 
 //I2C transmit
-	/**  
-	 * 	uint8 i2cdata[6] = {'B', 'o', 'u', 'l', 'e', 's'};
-	 * 	uint8 i2cdata2[4] = {'F', 'A', 'D', 'Y'};
-	 * 
-	 * 	I2C_Master_Transmit(1, 0x35, &i2cdata, 6);
-	 * 	delay_ms(7000);
-	 * 	I2C_Master_Transmit(1, 0x35, &i2cdata2, 4);
-	 * 	delay_ms(7000);
-	 */
+#define I2C_TRANSMIT_TEST
+#ifndef I2C_TRANSMIT_TEST
+	uint8 i2cdata[6] = {'B', 'o', 'u', 'l', 'e', 's'};
+	uint8 i2cdata2[4] = {'F', 'A', 'D', 'Y'};
+
+	I2C_Master_Transmit(1, 0x35, &i2cdata, 6);
+	delay_ms(7000);
+	I2C_Master_Transmit(1, 0x35, &i2cdata2, 4);
+	delay_ms(7000);
+#endif
 
 //STK polling
 #ifdef STK_polling
@@ -229,4 +252,4 @@ int main(void)
 	}
 #endif
 
-#endif /*CANCEL_THIS_FILE*/
+#endif /*MAIN_2*/
